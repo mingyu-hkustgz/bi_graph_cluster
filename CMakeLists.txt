@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.2)
 project(bi_graph_cluster)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -23,7 +23,7 @@ else()
     message(FATAL_ERROR "no Boost supprot")
 endif()
 
-add_definitions(-std=c++17 -O3)
+add_definitions(-std=c++17 -Ofast)
 
 add_subdirectory(src)
 

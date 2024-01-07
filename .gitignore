@@ -2,3 +2,4 @@
 *.index
 cmake-build-debug
 .idea
+/DATA/*
