@@ -2,7 +2,6 @@
 #include <fstream>
 #include <ctime>
 #include <cmath>
-#include <utils.h>
 #include <getopt.h>
 #include "graph.h"
 
@@ -66,37 +65,77 @@ int main(int argc, char *argv[]) {
         }
     }
     auto *graph = new Graph(graph_path);
-    graph->generate_test_examples(100);
-    if (method == 0) {
-        graph->naive_cluster_construct();
-        std::cerr << "index construct" << std::endl;
+    if (!isFileExists_ifstream(index_path)) {
+        graph->load_graph();
+        if (method == 0) {
+            graph->naive_cluster_construct();
+            std::cerr << "index construct" << std::endl;
+            graph->save_naive_data(index_path);
+        }
+        if (method == 1) {
+            graph->index_cluster_construct();
+            std::cerr << "index construct" << std::endl;
+            graph->save_index_data(index_path);
+        }
+    } else {
+        if (method == 0)
+            graph->load_naive_data(index_path);
+        if (method == 1)
+            graph->load_index_data(index_path);
+        std::cerr << "index load" << std::endl;
     }
-    if (method == 1) {
-        graph->index_cluster_construct();
-        std::cerr << "index construct" << std::endl;
-    }
-    eps = 0.2;
-    left_miu = 2;
-    right_miu = 3;
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
     if (method == 1)
         graph->index_query_union(eps, left_miu, right_miu);
-    std::cerr<<"finished"<<std::endl;
     graph->statistics_eps_per_edge(result_path);
-
-    for(int i=0;i<graph->node_num;i++){
-        if (graph->core_bm_[i]) {
-            std::cerr << "core-> " << i<<" "<<graph->graph_[i].size() << std::endl;
+    std::cerr<<left_miu<<" "<<right_miu<<std::endl;
+    for (int i = 0; i <10000; i++) {
+        if (graph->find_root(i) == i && graph->core_bm_[i]) {
+            std::cerr << "root-> " << i<<" "<<graph->graph_[i].size() << std::endl;
         }
     }
-    for(auto u:graph->result_non_core_){
-        if(graph->core_bm_[u.second]) continue;
-        std::cerr<<"no core: "<<graph->find_root(u.first)<<" "<<u.second<<std::endl;
-    }
-
-
     return 0;
 }
 /*
+root-> 9 82
+root-> 272 156
+root-> 452 136
+root-> 1059 94
+root-> 1481 272
+root-> 1588 93
+root-> 1930 154
+root-> 2086 82
+root-> 2351 114
+root-> 2544 97
+root-> 2655 234
+root-> 3283 153
+root-> 3439 173
+root-> 3513 310
+root-> 3537 108
+root-> 3726 101
+root-> 4099 105
+root-> 4299 86
+root-> 5016 107
+root-> 5322 83
+root-> 5533 148
+root-> 5566 126
+root-> 5625 85
+root-> 6273 105
+root-> 6328 394
+root-> 6871 87
+root-> 7183 96
+root-> 7410 80
+root-> 7568 88
+root-> 7603 104
+root-> 7640 287
+root-> 7969 86
+root-> 8136 123
+root-> 8196 82
+root-> 8430 99
+root-> 8470 130
+root-> 8597 86
+root-> 8804 250
+root-> 9235 111
+root-> 9353 257
  */

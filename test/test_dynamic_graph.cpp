@@ -2,7 +2,6 @@
 #include <fstream>
 #include <ctime>
 #include <cmath>
-#include <utils.h>
 #include <getopt.h>
 #include "graph.h"
 
@@ -66,22 +65,16 @@ int main(int argc, char *argv[]) {
         }
     }
     auto *graph = new Graph(graph_path);
-    graph->generate_test_examples(10);
-    if (method == 0) {
-        graph->naive_cluster_construct();
-        std::cerr << "index construct" << std::endl;
-    }
-    if (method == 1) {
+    if(isFileExists_ifstream(index_path)){
+        graph->generate_test_examples(20);
         graph->index_cluster_construct();
-        std::cerr << "index construct" << std::endl;
+        graph->save_index_data(index_path);
+    }else{
+        graph->dynamic_index_init(index_path);
     }
-    eps = 0.2;
-    left_miu = 2;
-    right_miu = 3;
-    if (method == 0)
-        graph->naive_query_union(eps, left_miu, right_miu);
-    if (method == 1)
-        graph->index_query_union(eps, left_miu, right_miu);
+
+    std::cerr << "index construct" << std::endl;
+    graph->index_query_union(eps, left_miu, right_miu);
     std::cerr<<"finished"<<std::endl;
 
     return 0;

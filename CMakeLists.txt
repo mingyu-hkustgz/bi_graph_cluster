@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 
-
 find_package(OpenMP)
 
 if (OPENMP_FOUND)
@@ -26,5 +25,6 @@ endif()
 add_definitions(-std=c++17 -Ofast)
 
 add_subdirectory(src)
+add_subdirectory(test)
 
 

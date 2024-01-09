@@ -1,7 +1,5 @@
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(main main.cpp)
-
-add_executable(test_small_graph test_small_graph.cpp)
-
-add_executable(test_dynamic_graph test_dynamic_graph.cpp)
+file(GLOB_RECURSE CPP_SOURCES *.cpp)
+add_library(${PROJECT_NAME} ${CPP_SOURCES})
+add_library(${PROJECT_NAME}_s STATIC ${CPP_SOURCES})
