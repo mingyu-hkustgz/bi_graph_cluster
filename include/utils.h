@@ -31,8 +31,8 @@
 #ifndef BI_GRAPH_CLUSTER_UTILS_H
 #define LL long long
 
+#define BI_GRAPH_CLUSTER_UTILS_H
 
 bool isFileExists_ifstream(const char *name);
 
-#define BI_GRAPH_CLUSTER_UTILS_H
 #endif //BI_GRAPH_CLUSTER_UTILS_H

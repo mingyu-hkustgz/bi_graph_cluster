@@ -21,7 +21,7 @@ public:
 
     ~Graph() {
         std::vector<std::vector<int>>().swap(graph_);
-        boost::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>().swap(common_bflys_);
+        boost::unordered_map<std::pair<int, int>, LL, boost::hash<std::pair<int, int>>>().swap(common_bflys_);
         boost::unordered_map<std::pair<int, int>, float, boost::hash<std::pair<int, int>>>().swap(similarity_square_);
         boost::dynamic_bitset<>().swap(core_bm_);
         std::vector<std::pair<int, int> >().swap(result_non_core_);
@@ -45,11 +45,11 @@ public:
 
     void set_union(int u, int v) const;
 
-    int exact_neighbor_intersections(int u, int v);
+    LL exact_neighbor_intersections(int u, int v);
 
-    int naive_compute_common_bflys(int u, int v);
+    LL naive_compute_common_bflys(int u, int v);
 
-    int fast_compute_common_bflys(int u, int v, std::unordered_map<int, int> &index_map);
+    LL fast_compute_common_bflys(int u, int v, std::unordered_map<int, int> &index_map);
 
     void get_two_hop_map(int u, std::unordered_map<int, int> &index_map);
 
@@ -57,13 +57,27 @@ public:
 
     void naive_cluster_construct();
 
-    void degree_cluster_construct();
+    void naive_parallel_cluster_construct(int threads);
+
+    void naive_sampling_cluster_construct();
+
+    void naive_sampling_parallel_cluster_construct(int threads);
 
     void sort_nbr_by_similarity(int u);
 
     void sort_cores(int eps_deg);
 
     void index_cluster_construct();
+
+    void index_parallel_cluster_construct(int threads);
+
+    void index_sampling_cluster_construct();
+
+    void index_sampling_parallel_cluster_construct(int threads);
+
+    void parallel_sort_graph(int threads);
+
+    void parallel_get_two_hop(int threads);
 
     void naive_query_two_stage(float eps, int l_miu, int r_miu);
 
@@ -79,218 +93,30 @@ public:
 
     void naive_delete_edge(int u, int v);
 
+    void recompute_edge_similarity(int u, int v);
 
-    void update_all_core_order_naive(int u) {
-        int deg_u = (int) nbr_[u].size();
-        int i = 0;
-        for (auto it = nbr_mp_[u].begin(); it != nbr_mp_[u].end(); ++it, ++i) {
-            if (it->second <= left_nodes) {
-                auto range = cores_mp_left_[i + 1].equal_range(nbr_order_[u][i]);
-                for (auto rit = range.first; rit != range.second; ++rit) {
-                    if (rit->second == u) {
-                        cores_mp_left_[i + 1].erase(rit);
-                        break;
-                    }
-                }
-                cores_mp_left_[i + 1].insert(std::make_pair(it->first, u));
-            } else {
-                auto range = cores_mp_right_[i + 1].equal_range(nbr_order_[u][i]);
-                for (auto rit = range.first; rit != range.second; ++rit) {
-                    if (rit->second == u) {
-                        cores_mp_right_[i + 1].erase(rit);
-                        break;
-                    }
-                }
-                cores_mp_right_[i + 1].insert(std::make_pair(it->first, u));
-            }
-            nbr_order_[u][i] = it->first;
+
+    LL randomized_compute_common_bflys(int a, int b) {
+        std::random_device rd_edge;
+        std::mt19937_64 eng_ran_bfc_per_edge(rd_edge());
+        if (graph_[a].size() <= 1 || graph_[b].size() <= 1) {
+            return 0;
         }
+        std::uniform_int_distribution<int> dis_a(0, (int)graph_[a].size() - 1);
+        std::uniform_int_distribution<int> dis_b(0, (int)graph_[b].size() - 1);
+        LL res_ran_bfc_per_edge = 0;
+        for (int i = 0; i < N_FAST_EDGE_BFC_ITERATIONS; i++) {
+            int x = graph_[a][dis_a(eng_ran_bfc_per_edge)];
+            int y = graph_[b][dis_b(eng_ran_bfc_per_edge)];
+            if (x != b && y != a && binary_search(graph_[x].begin(), graph_[x].end(), y)) {
+                res_ran_bfc_per_edge += ((LL) graph_[a].size() * ((LL) graph_[b].size()));
+            }
+        }
+        res_ran_bfc_per_edge /= N_FAST_EDGE_BFC_ITERATIONS;
+        return res_ran_bfc_per_edge;
     }
-
-    void update_all_core_order(int u) {
-        int deg_u = (int) nbr_[u].size();
-        int i = 0;
-        for (auto it: nbr_mp_[u]) {
-            i++;
-            if (it.first == nbr_order_[u][i]) continue;
-            if (i > 0 && it.second <= left_nodes) {
-                auto range = cores_mp_left_[i + 1].equal_range(nbr_order_[u][i]);
-                for (auto rit = range.first; rit != range.second; ++rit) {
-                    if (rit->second == u) {
-                        cores_mp_left_[i + 1].erase(rit);
-                        cores_mp_left_[i + 1].insert(std::make_pair(it.first, u));
-                        break;
-                    }
-                }
-            }
-            if (i > 0 && it.second > left_nodes) {
-                auto range = cores_mp_right_[i + 1].equal_range(nbr_order_[u][i]);
-                for (auto rit = range.first; rit != range.second; ++rit) {
-                    if (rit->second == u) {
-                        cores_mp_right_[i + 1].erase(rit);
-                        cores_mp_right_[i + 1].insert(std::make_pair(it.first, u));
-                        break;
-                    }
-                }
-            }
-            nbr_order_[u][i] = it.first;
-        }
-    }
-
-    void update_nbr_order(int u, int root, float new_ss, float old_ss) {
-
-        auto range = nbr_mp_[u].equal_range(old_ss);
-
-        auto n_it = range.first;
-        for (; n_it != range.second; ++n_it) {
-            if (n_it->second == root) {
-
-                nbr_mp_[u].erase(n_it);
-                break;
-            }
-        }
-        nbr_mp_[u].insert(std::make_pair(new_ss, root));
-    }
-
-    void remove_highest_core(int u) {
-        int deg = (int) nbr_[u].size();
-        float min_ss = nbr_mp_[u].rbegin()->first;
-        if (u <= left_nodes) {
-            auto range = cores_mp_left_[deg].equal_range(min_ss);
-            for (auto it = range.first; it != range.second; ++it) {
-                if (it->second == u) {
-                    cores_mp_left_[deg].erase(it);
-                    break;
-                }
-            }
-        } else {
-            auto range = cores_mp_right_[deg].equal_range(min_ss);
-            for (auto it = range.first; it != range.second; ++it) {
-                if (it->second == u) {
-                    cores_mp_right_[deg].erase(it);
-                    break;
-                }
-            }
-        }
-        if (!nbr_order_[u].empty()) nbr_order_[u].pop_back();
-    }
-
-    void update_core_order(int u, float new_ss, float old_ss) {
-        int deg_u = (int) nbr_order_[u].size();
-        bool enter_range = false;
-        float pre = new_ss;
-        float old;
-        if (new_ss > old_ss) {
-
-            for (int i = 0; i < deg_u; ++i) {
-                if (nbr_order_[u][i] >= new_ss) continue;
-
-                old = nbr_order_[u][i];
-                std::swap(nbr_order_[u][i], pre);
-                if (u <= left_nodes) {
-                    auto range = cores_mp_left_[i + 1].equal_range(old);
-                    for (auto it = range.first; it != range.second; ++it) {
-                        if (it->second == u) {
-                            cores_mp_left_[i + 1].erase(it);
-                            cores_mp_left_[i + 1].emplace(nbr_order_[u][i], u);
-                            break;
-                        }
-                    }
-                } else {
-                    auto range = cores_mp_right_[i + 1].equal_range(old);
-                    for (auto it = range.first; it != range.second; ++it) {
-                        if (it->second == u) {
-                            cores_mp_right_[i + 1].erase(it);
-                            cores_mp_right_[i + 1].emplace(nbr_order_[u][i], u);
-                            break;
-                        }
-                    }
-                }
-                if (old <= old_ss) break;
-            }
-        } else {
-            for (int i = deg_u - 1; i >= 0; --i) {
-                if (nbr_order_[u][i] <= new_ss) continue;
-
-                old = nbr_order_[u][i];
-                // update
-                std::swap(nbr_order_[u][i], pre);
-                if (u <= left_nodes) {
-                    auto range = cores_mp_left_[i + 1].equal_range(old);
-                    for (auto it = range.first; it != range.second; ++it) {
-                        if (it->second == u) {
-                            cores_mp_left_[i + 1].erase(it);
-                            cores_mp_left_[i + 1].emplace(nbr_order_[u][i], u);
-                            break;
-                        }
-                    }
-                } else {
-                    auto range = cores_mp_right_[i + 1].equal_range(old);
-                    for (auto it = range.first; it != range.second; ++it) {
-                        if (it->second == u) {
-                            cores_mp_right_[i + 1].erase(it);
-                            cores_mp_right_[i + 1].emplace(nbr_order_[u][i], u);
-                            break;
-                        }
-                    }
-                }
-                if (old >= old_ss) break;
-            }
-        }
-
-    }
-
-    void dyc_update_nbr(int a, int old_deg, int skip_id) {
-
-        // mark each a's two hop neighbor via unordered map
-        std::unordered_map<int, int> two_hop_map;
-        get_two_hop_map(a, two_hop_map);
-        int deg_a = (int) nbr_[a].size() - 1;
-
-        for (auto a_it = nbr_[a].begin(); a_it != nbr_[a].end(); ++a_it) {
-
-            int n_id = a_it->first;
-            if (skip_id != -1 && n_id == skip_id) continue;
-            int n_deg = (int) nbr_[n_id].size() - 1;
-
-            int old_cn = a_it->second;
-            int cn = fast_compute_common_bflys(a, n_id, two_hop_map);
-
-
-            float new_ss = (float) cn * (float) cn / (n_deg) * (deg_a);
-
-            // erase old similarity square from n_id's map
-            if (old_cn != -1) {
-                float old_ss = (float) old_cn * (float) old_cn / ((n_deg) * (old_deg));
-
-                auto range = nbr_mp_[n_id].equal_range(old_ss);
-                auto r_it = range.first;
-                for (; r_it != range.second; ++r_it) {
-                    if (r_it->second == a) {
-                        nbr_mp_[n_id].erase(r_it);
-                        break;
-                    }
-                }
-            }
-
-            a_it->second = cn;
-            nbr_[n_id][a] = cn;
-
-            nbr_mp_[n_id].insert(std::make_pair(new_ss, a));
-            nbr_mp_[a].insert(std::make_pair(new_ss, n_id));
-            update_all_core_order_naive(n_id);
-        }
-        // recover bitmap
-        for (auto &a_it: nbr_[a]) {
-            int n_id = a_it.first;
-            dynamic_bm_[n_id] = false;
-        }
-        update_all_core_order_naive(a);
-    }
-
 
     void statistics_eps_per_edge(char *filename) {
-        std::vector<float> stat_res;
         for (int i = 0; i < node_num; i++) {
             for (auto v: graph_[i]) {
                 stat_res.push_back(similarity_square_[std::make_pair(i, v)]);
@@ -357,7 +183,7 @@ public:
     }
 
 
-    boost::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>> common_bflys_;
+    boost::unordered_map<std::pair<int, int>, LL, boost::hash<std::pair<int, int>>> common_bflys_;
     boost::unordered_map<std::pair<int, int>, float, boost::hash<std::pair<int, int>>> similarity_square_;
     int node_num, edge_num;
     std::vector<std::vector<int>> graph_;
@@ -374,6 +200,8 @@ public:
     int max_degree_;
     int left_nodes, right_nodes;
 
+    int N_FAST_EDGE_BFC_ITERATIONS = 100;
+
     char *graph_path;
     boost::dynamic_bitset<> core_bm_;
     std::vector<std::pair<int, int>> result_non_core_;
@@ -386,7 +214,7 @@ public:
 
     std::vector<float> *nbr_order_;
     std::unordered_map<int, int> *nbr_;
-
+    std::vector<float> stat_res;
 
 };
 

@@ -77,16 +77,34 @@ int main(int argc, char *argv[]) {
             std::cerr << "index construct" << std::endl;
             graph->save_index_data(index_path);
         }
+        if (method == 2) {
+            graph->naive_parallel_cluster_construct(120);
+            std::cerr << "index construct" << std::endl;
+            graph->save_naive_data(index_path);
+        }
+        if (method == 3) {
+            graph->index_parallel_cluster_construct(120);
+            std::cerr << "index construct" << std::endl;
+            graph->save_index_data(index_path);
+        }
     } else {
         if (method == 0)
             graph->load_naive_data(index_path);
         if (method == 1)
+            graph->load_index_data(index_path);
+        if (method == 2)
+            graph->load_naive_data(index_path);
+        if (method == 3)
             graph->load_index_data(index_path);
         std::cerr << "index load" << std::endl;
     }
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
     if (method == 1)
+        graph->index_query_union(eps, left_miu, right_miu);
+    if (method == 2)
+        graph->naive_query_union(eps, left_miu, right_miu);
+    if (method == 3)
         graph->index_query_union(eps, left_miu, right_miu);
     graph->statistics_eps_per_edge(result_path);
     std::cerr<<left_miu<<" "<<right_miu<<std::endl;

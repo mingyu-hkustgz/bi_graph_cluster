@@ -65,6 +65,19 @@ void Graph::dynamic_index_init(char *filename) {
 }
 
 
+void Graph::recompute_edge_similarity(int u, int v) {
+    LL v_wedge = node_two_hop_[v] - (LL) graph_[u].size() + 2;
+    LL u_wedge = node_two_hop_[u] - (LL) graph_[v].size() + 2;
+    LL uv_wedge = ((LL) graph_[u].size() - 1) * ((LL) graph_[v].size() - 1) + 1;
+    LL cn = common_bflys_[std::make_pair(u, v)];
+    float tmp_eps =
+            (long double) (cn + 1) / std::pow((long double) (u_wedge * v_wedge * uv_wedge), 1.0 / 3.0);
+    similarity_square_[std::make_pair(u, v)] = tmp_eps;
+    similarity_square_[std::make_pair(v, u)] = tmp_eps;
+}
+
+
+
 void Graph::naive_insert_edge(int u, int v) {
     int left = std::min(u, v), right = std::max(u, v);
     if (left > left_nodes || right <= left_nodes) return;
@@ -75,11 +88,55 @@ void Graph::naive_insert_edge(int u, int v) {
     std::unordered_map<int, int> two_hop_map;
     get_two_hop_map(u, two_hop_map);
     new_btf = fast_compute_common_bflys(u, v, two_hop_map);
-    common_bflys_[std::make_pair(u,v)] = new_btf;
-    common_bflys_[std::make_pair(v,u)] = new_btf;
-    for(int i=0;i<)
+    common_bflys_[std::make_pair(u, v)] = new_btf;
+    common_bflys_[std::make_pair(v, u)] = new_btf;
+    boost::unordered_map<std::pair<int, int>, bool, boost::hash<std::pair<int, int>>> common_edges_;
+    for (auto neighbor: graph_[u]) {
+        for (auto two_hop: graph_[neighbor]) {
+            if (two_hop != u) {
+                common_edges_[std::make_pair(neighbor, two_hop)] = true;
+                common_edges_[std::make_pair(two_hop, neighbor)] = true;
+            }
+        }
+    }
+    for (auto next_u: graph_[u]) {
+        for (auto next_v: graph_[v]) {
+            if (common_edges_[std::make_pair(next_u, next_v)]) {
+                common_bflys_[std::make_pair(next_u, next_v)]++;
+                common_bflys_[std::make_pair(next_v, next_u)]++;
+                common_bflys_[std::make_pair(u, next_u)]++;
+                common_bflys_[std::make_pair(next_u, u)]++;
+                common_bflys_[std::make_pair(next_v, v)]++;
+            }
+
+        }
+    }
+    node_two_hop_[u] += (LL) graph_[v].size();
+    node_two_hop_[v] += (LL) graph_[u].size();
+    for (auto neighbor: graph_[u]) {
+        node_two_hop_[neighbor]++;
+    }
+    for (auto neighbor: graph_[v]) {
+        node_two_hop_[neighbor]++;
+    }
     graph_[u].push_back(v);
     graph_[v].push_back(u);
+    for (auto neighbor: graph_[u]) {
+        recompute_edge_similarity(neighbor, u);
+        for (auto two_hop: graph_[neighbor]) {
+            recompute_edge_similarity(neighbor, two_hop);
+        }
+    }
+    for (auto neighbor: graph_[v]) {
+        recompute_edge_similarity(neighbor, v);
+        for (auto two_hop: graph_[neighbor]) {
+            recompute_edge_similarity(neighbor, two_hop);
+        }
+    }
+
+
+
+
 }
 
 void Graph::naive_delete_edge(int u, int v) {

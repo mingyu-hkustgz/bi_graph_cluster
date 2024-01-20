@@ -92,8 +92,8 @@ void Graph::save_index_data(char *filename) {
     }
     for (int i = 0; i < node_num; i++) {
         for (auto v: graph_[i]) {
-            unsigned com_fly = common_bflys_[std::make_pair(i, v)];
-            fout.write((char *) &com_fly, sizeof(int));
+            LL com_fly = common_bflys_[std::make_pair(i, v)];
+            fout.write((char *) &com_fly, sizeof(LL));
         }
     }
     fout.write((char *) index_core_cnt_left.data(), sizeof(int) * (max_degree_ + 1));
@@ -131,7 +131,7 @@ void Graph::load_index_data(char *filename) {
     for (int i = 0; i < node_num; i++) {
         for (auto v: graph_[i]) {
             int com_fly;
-            fin.read((char *) &com_fly, sizeof(int));
+            fin.read((char *) &com_fly, sizeof(LL));
             common_bflys_[std::make_pair(i, v)] = com_fly;
             common_bflys_[std::make_pair(v, i)] = com_fly;
         }

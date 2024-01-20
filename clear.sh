@@ -1,0 +1,1 @@
+find ./result -name "*.log" | xargs rm

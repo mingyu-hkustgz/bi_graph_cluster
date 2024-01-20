@@ -1,5 +1,10 @@
 *.bin
 *.index
+*.uuid
+*.log
+*.png
+*.naive
 cmake-build-debug
 .idea
-/DATA/*
+/DATA/datasets/
+/DATA/demo/
