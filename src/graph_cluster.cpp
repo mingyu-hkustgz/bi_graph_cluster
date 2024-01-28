@@ -31,13 +31,13 @@ void Graph::parallel_get_two_hop(int threads) {
 }
 
 
-void Graph::naive_cluster_construct() {
+void Graph::naive_cluster_construct(bool use_hash) {
     for (int u = 0; u < node_num; u++) {
         if (u % (node_num / 100 + 1) == 0) std::cerr << "current :: tag -> :: " << u << std::endl;
-#ifdef HASHMAP
         std::unordered_map<int, int> two_hop_map;
-        get_two_hop_map(u, two_hop_map);
-#endif
+        if(use_hash){
+            get_two_hop_map(u, two_hop_map);
+        }
         if (node_two_hop_[u] == -1) get_two_hop_count(u);
         for (auto v: graph_[u]) {
             if (v < u) continue;
@@ -46,11 +46,10 @@ void Graph::naive_cluster_construct() {
             LL u_wedge = node_two_hop_[u] - (LL) graph_[v].size() + 2;
             LL uv_wedge = ((LL) graph_[u].size() - 1) * ((LL) graph_[v].size() - 1) + 1;
             LL cn = 0;
-#ifdef HASHMAP
-            cn = fast_compute_common_bflys(u, v, two_hop_map);
-#else
-            cn = naive_compute_common_bflys(u,v);
-#endif
+            if(use_hash)
+                cn = fast_compute_common_bflys(u, v, two_hop_map);
+            else
+                cn = naive_compute_common_bflys(u,v);
             common_bflys_[std::make_pair(u, v)] = cn;
             common_bflys_[std::make_pair(v, u)] = cn;
             long double base_eps = (long double) (cn + 1) / (long double) (u_wedge) * (long double) (cn + 1) / (long double) (v_wedge) * (long double) (cn + 1) / (long  double)(uv_wedge);
@@ -151,16 +150,16 @@ void Graph::sort_cores(int eps_deg) {
 
 }
 
-void Graph::index_cluster_construct() {
+void Graph::index_cluster_construct(bool use_hash) {
     index_core_cnt_left.resize(max_degree_ + 1, 0);
     index_core_cnt_right.resize(max_degree_ + 1, 0);
     for (int u = 0; u < node_num; ++u) {
         if (u % (node_num / 100 + 1) == 0) std::cerr << "current :: tag -> :: " << u << std::endl;
         // compute similarity of all edges connected to u
-#ifdef HASHMAP
         std::unordered_map<int, int> two_hop_map;
-        get_two_hop_map(u, two_hop_map);
-#endif
+        if(use_hash){
+            get_two_hop_map(u, two_hop_map);
+        }
         if (node_two_hop_[u] == -1) get_two_hop_count(u);
         for (auto v: graph_[u]) {
             if (v < u) continue;
@@ -169,11 +168,10 @@ void Graph::index_cluster_construct() {
             LL u_wedge = node_two_hop_[u] - (LL) graph_[v].size() + 2;
             LL uv_wedge = ((LL) graph_[u].size() - 1) * ((LL) graph_[v].size() - 1) + 1;
             LL cn = 0;
-#ifdef HASHMAP
-            cn = fast_compute_common_bflys(u, v, two_hop_map);
-#else
-            cn = naive_compute_common_bflys(u,v);
-#endif
+            if(use_hash)
+                cn = fast_compute_common_bflys(u, v, two_hop_map);
+            else
+                cn = naive_compute_common_bflys(u,v);
             common_bflys_[std::make_pair(u, v)] = cn;
             common_bflys_[std::make_pair(v, u)] = cn;
             long double base_eps = (long double) (cn + 1) / (long double) (u_wedge) * (long double) (cn + 1) / (long double) (v_wedge) * (long double) (cn + 1) / (long  double)(uv_wedge);
@@ -403,55 +401,18 @@ void Graph::index_sampling_cluster_construct() {
 void Graph::index_sampling_parallel_cluster_construct(int threads) {
     index_core_cnt_left.resize(max_degree_ + 1, 0);
     index_core_cnt_right.resize(max_degree_ + 1, 0);
-    parallel_sort_graph(threads);
-    parallel_get_two_hop(threads);
-    unsigned check_tag = 0;
+    naive_sampling_parallel_cluster_construct(threads);
 #pragma omp parallel for num_threads(threads)
-    for (int u = 0; u < node_num; ++u) {
+    for (int u = 0; u < node_num; u++) {
 #pragma omp critical
-        {
-            check_tag++;
-            if (check_tag % (node_num / 100 + 1) == 0) std::cerr << "current :: " << check_tag << std::endl;
-        }
-        std::unordered_map<int, int> two_hop_map;
-        if (node_two_hop_[u] < N_FAST_EDGE_BFC_ITERATIONS)
-            get_two_hop_map(u, two_hop_map);
-        for (auto v: graph_[u]) {
-            if (v < u) continue;
-            if (node_two_hop_[v] == -1) get_two_hop_count(v);
-            LL v_wedge = node_two_hop_[v] - (LL) graph_[u].size() + 2;
-            LL u_wedge = node_two_hop_[u] - (LL) graph_[v].size() + 2;
-            LL uv_wedge = ((LL) graph_[u].size() - 1) * ((LL) graph_[v].size() - 1) + 1;
-            LL cn = 0;
-            if (node_two_hop_[u] < N_FAST_EDGE_BFC_ITERATIONS)
-                cn = fast_compute_common_bflys(u, v, two_hop_map);
-            else
-                cn = randomized_compute_common_bflys(u, v);
-#pragma omp critical
-            {
-                common_bflys_[std::make_pair(u, v)] = cn;
-                common_bflys_[std::make_pair(v, u)] = cn;
-            };
-            long double base_eps = (long double) (cn + 1) / (long double) (u_wedge) * (long double) (cn + 1) / (long double) (v_wedge) * (long double) (cn + 1) / (long  double)(uv_wedge);
-            float tmp_eps = std::pow((long double) (base_eps), 1.0 / 3.0);
-#pragma omp critical
-            {
-                similarity_square_[std::make_pair(u, v)] = tmp_eps;
-                similarity_square_[std::make_pair(v, u)] = tmp_eps;
-            }
-        }
-#pragma omp critical
-        {
-            if (u <= left_nodes)
-                ++index_core_cnt_left[graph_[u].size()];
-            else
-                ++index_core_cnt_right[graph_[u].size()];
-            sort_nbr_by_similarity(u);
-        }
+        if (u <= left_nodes)
+            ++index_core_cnt_left[graph_[u].size()];
+        else
+            ++index_core_cnt_right[graph_[u].size()];
+        sort_nbr_by_similarity(u);
         // quick_sort_nbr_by_similarity(u, offset_[u], offset_[u+1]);
     }
     std::cerr << "sort core order" << std::endl;
-
     // compute the number of vertices under each miu
     for (int i = max_degree_ - 1; i > 0; --i) {
         index_core_cnt_left[i] += index_core_cnt_left[i + 1];

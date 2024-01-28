@@ -5,8 +5,6 @@
 #include <getopt.h>
 #include "graph.h"
 
-#define HASHMAP
-
 int main(int argc, char *argv[]) {
     const struct option longopts[] = {
             // General Parameter
@@ -33,25 +31,20 @@ int main(int argc, char *argv[]) {
     char index_path[256] = "";
     char graph_path[256] = "";
     char result_path[256] = "";
-    int left_miu = 1, right_miu = 1;
+    char logger_path[256] = "";
+
     float eps = 0.00;
     int method = 0;
-
+    int thread = 0;
 
     while (iarg != -1) {
-        iarg = getopt_long(argc, argv, "g:l:r:e:i:m:s:", longopts, &ind);
+        iarg = getopt_long(argc, argv, "g:l:r:e:i:m:s:t:", longopts, &ind);
         switch (iarg) {
             case 'g':
                 if (optarg) strcpy(graph_path, optarg);
                 break;
             case 'l':
-                if (optarg) left_miu = atoi(optarg);
-                break;
-            case 'r':
-                if (optarg) right_miu = atoi(optarg);
-                break;
-            case 'f':
-                if (optarg) eps = atof(optarg);
+                if (optarg) strcpy(logger_path, optarg);
                 break;
             case 'i':
                 if (optarg)strcpy(index_path, optarg);
@@ -62,23 +55,35 @@ int main(int argc, char *argv[]) {
             case 's':
                 if (optarg)strcpy(result_path, optarg);
                 break;
+            case 't':
+                if (optarg) thread = atoi(optarg);
+                break;
         }
     }
     auto *graph = new Graph(graph_path);
-    if(isFileExists_ifstream(index_path)){
-        graph->generate_test_examples(20);
-        graph->index_cluster_construct();
-        graph->save_index_data(index_path);
-    }else{
-        graph->dynamic_index_init(index_path);
+    graph->load_graph();
+    auto s = std::chrono::high_resolution_clock::now();
+    if (method == 0) {
+        graph->naive_cluster_construct(false);
+        std::cerr << "index construct" << std::endl;
+        graph->save_naive_data(index_path);
     }
-
-    std::cerr << "index construct" << std::endl;
-    graph->index_query_union(eps, left_miu, right_miu);
-    std::cerr<<"finished"<<std::endl;
-
+    if (method == 1) {
+        graph->index_cluster_construct(false);
+        std::cerr << "index construct" << std::endl;
+        graph->save_index_data(index_path);
+    }
+    auto e = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = e - s;
+    double time_slap = diff.count();
+    graph->statistics_eps_per_edge(logger_path);
+    freopen(result_path, "a", stdout);
+    printf("index time(s):: %.6f\n", time_slap);
+    int quantile = 0;
+    for (int i = (graph->stat_res.size() / 10); i < graph->stat_res.size(); i += (graph->stat_res.size() / 10)) {
+        quantile++;
+        printf("%d/10 :: sim-> %.6f\n", quantile, graph->stat_res[i]);
+    }
+    printf("max :: %.6f\n", graph->stat_res[graph->stat_res.size() - 1]);
     return 0;
 }
-/*
- *
- */

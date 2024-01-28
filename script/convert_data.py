@@ -1,11 +1,12 @@
 import os
 from tqdm import tqdm
 
-source = '/home/BLD/mingyu/DATA/bi-graph_data'
+source = '/home/yming/DATA/bi-graph_data'
 if __name__ == "__main__":
-    files = os.listdir(source)
-    print(files)
-    files.sort()
+    # files = os.listdir(source)
+    # print(files)
+    # files.sort()
+    files =["edit-biwikibooks", "citeulike-ui", "dblp-author","flickr-groupmemberships"]
     for dataset in files:
         data_file_path = f"{source}/{dataset}/out.{dataset}"
         print(f"now:: data set -> {dataset}")

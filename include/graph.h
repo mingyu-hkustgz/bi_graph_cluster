@@ -55,7 +55,7 @@ public:
 
     void get_two_hop_count(int u);
 
-    void naive_cluster_construct();
+    void naive_cluster_construct(bool use_hash=true);
 
     void naive_parallel_cluster_construct(int threads);
 
@@ -67,7 +67,7 @@ public:
 
     void sort_cores(int eps_deg);
 
-    void index_cluster_construct();
+    void index_cluster_construct(bool use_hash=true);
 
     void index_parallel_cluster_construct(int threads);
 
@@ -94,6 +94,25 @@ public:
     void naive_delete_edge(int u, int v);
 
     void recompute_edge_similarity(int u, int v);
+
+    int get_ave_left_degree(){
+        LL degree_count = 0;
+        for(int i=0;i<left_nodes;i++){
+            degree_count += graph_[i].size();
+        }
+        degree_count /= left_nodes;
+        return (int) degree_count;
+    }
+
+    int get_ave_right_degree(){
+        LL degree_count = 0;
+        for(int i=left_nodes;i<node_num;i++){
+            degree_count += graph_[i].size();
+        }
+        degree_count /= right_nodes;
+        return (int) degree_count;
+    }
+
 
 
     LL randomized_compute_common_bflys(int a, int b) {

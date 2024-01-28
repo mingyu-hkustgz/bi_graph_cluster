@@ -1,6 +1,9 @@
+source set.sh
 mkdir DATA
 mkdir result
+
 for data in "${datasets[@]}"; do
+  echo "make dir file ${data}"
   mkdir "./DATA/${data}"
   mkdir "./result/${data}"
 done
