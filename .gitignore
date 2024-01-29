@@ -1,9 +1,13 @@
 *.bin
+.idea
+.vscode
 *.index
 *.uuid
 *.log
 *.png
 *.naive
+*.mat
+build
 cmake-build-debug
 .idea
 /DATA/datasets/

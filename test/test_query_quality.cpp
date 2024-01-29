@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
             case 'r':
                 if (optarg) right_miu = atoi(optarg);
                 break;
-            case 'f':
+            case 'e':
                 if (optarg) eps = atof(optarg);
                 break;
             case 'i':
@@ -65,35 +65,40 @@ int main(int argc, char *argv[]) {
         }
     }
     auto *graph = new Graph(graph_path);
-    graph->generate_test_examples(100);
+    graph->load_graph();
     if (method == 0) {
-        graph->naive_cluster_construct();
-        std::cerr << "index construct" << std::endl;
+        if(isFileExists_ifstream(index_path))
+            graph->load_naive_data(index_path);
+        else{
+            graph->naive_cluster_construct();
+            graph->save_naive_data(index_path);
+        }
+        std::cerr << "naive construct" << std::endl;
     }
     if (method == 1) {
-        graph->index_cluster_construct();
+        if(isFileExists_ifstream(index_path))
+            graph->load_index_data(index_path);
+        else{
+            graph->index_cluster_construct();
+            graph->save_index_data(index_path);
+        }
         std::cerr << "index construct" << std::endl;
     }
-    eps = 0.2;
-    left_miu = 2;
-    right_miu = 3;
+
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
     if (method == 1)
         graph->index_query_union(eps, left_miu, right_miu);
-    std::cerr<<"finished"<<std::endl;
-    graph->statistics_eps_per_edge(result_path);
 
-    for(int i=0;i<graph->node_num;i++){
-        if (graph->core_bm_[i]) {
-            std::cerr << "core-> " << i<<" "<<graph->graph_[i].size() << std::endl;
-        }
+    graph->statistics_eps_per_edge("test.log");
+   
+    std::ofstream fout(result_path, std::ios::binary);
+    int left_num = graph->left_nodes+1;
+    fout.write((char*)&left_num,sizeof(int));
+    for(int i=0;i<left_num;i++){
+        int result = graph->find_root(i);
+        fout.write((char*)&result,sizeof(int));
     }
-    for(auto u:graph->result_non_core_){
-        if(graph->core_bm_[u.second]) continue;
-        std::cerr<<"no core: "<<graph->find_root(u.first)<<" "<<u.second<<std::endl;
-    }
-
 
     return 0;
 }
