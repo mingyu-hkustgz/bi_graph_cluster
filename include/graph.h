@@ -219,7 +219,7 @@ public:
     int max_degree_;
     int left_nodes, right_nodes;
 
-    int N_FAST_EDGE_BFC_ITERATIONS = 1000;
+    int N_FAST_EDGE_BFC_ITERATIONS = 100;
 
     char *graph_path;
     boost::dynamic_bitset<> core_bm_;

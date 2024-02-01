@@ -92,19 +92,13 @@ int main(int argc, char *argv[]) {
         right_miu = graph->get_ave_right_degree();
         eps = graph->stat_res[graph->node_num*0.8];
     }
+
+    
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
     if (method == 1)
         graph->index_query_union(eps, left_miu, right_miu);
 
-   
-    std::ofstream fout(result_path, std::ios::binary);
-    int left_num = graph->left_nodes+1;
-    fout.write((char*)&left_num,sizeof(int));
-   for(int i=0;i<left_num;i++){
-         int result = graph->find_root(i);
-        fout.write((char*)&result,sizeof(int));
-    }
 
     return 0;
 }
