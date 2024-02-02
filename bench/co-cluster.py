@@ -5,7 +5,7 @@ from sklearn.metrics import (adjusted_rand_score as ari,
                              normalized_mutual_info_score as nmi)
 
 method_list = ["mod", "info"]
-file_list = ["Yale_32x32.mat", "cora.mat", "WebKB4.mat", "WebKB_wisconsin.mat", "WebKB_texas.mat", "IMDb_movies_actors.mat", "IMDb_movies_keywords.mat"]
+file_list = ["cora.mat", "WebKB_wisconsin.mat", "WebKB_texas.mat"]
 
 
 if __name__ == "__main__":

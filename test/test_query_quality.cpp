@@ -33,13 +33,14 @@ int main(int argc, char *argv[]) {
     char index_path[256] = "";
     char graph_path[256] = "";
     char result_path[256] = "";
+    char logger_path[256] = "";
     int left_miu = 1, right_miu = 1;
     float eps = 0.00;
     int method = 0;
 
 
     while (iarg != -1) {
-        iarg = getopt_long(argc, argv, "g:l:r:e:i:m:s:", longopts, &ind);
+        iarg = getopt_long(argc, argv, "g:l:r:e:i:m:s:d:", longopts, &ind);
         switch (iarg) {
             case 'g':
                 if (optarg) strcpy(graph_path, optarg);
@@ -62,49 +63,54 @@ int main(int argc, char *argv[]) {
             case 's':
                 if (optarg)strcpy(result_path, optarg);
                 break;
+            case 'd':
+                if (optarg)strcpy(logger_path, optarg);
+                break;
         }
     }
     auto *graph = new Graph(graph_path);
     graph->load_graph();
     if (method == 0) {
-        if(isFileExists_ifstream(index_path))
-            graph->load_naive_data(index_path);
-        else{
-            graph->naive_cluster_construct();
-            graph->save_naive_data(index_path);
-        }
+        graph->naive_cluster_construct();
         std::cerr << "naive construct" << std::endl;
     }
     if (method == 1) {
-        if(isFileExists_ifstream(index_path))
-            graph->load_index_data(index_path);
-        else{
-            graph->index_cluster_construct();
-            graph->save_index_data(index_path);
-        }
+        graph->index_cluster_construct();
         std::cerr << "index construct" << std::endl;
     }
 
-    graph->statistics_eps_per_edge("test.log");
-    //set as default
-    if(eps<0.0){
-        left_miu = graph->get_ave_left_degree();
-        right_miu = graph->get_ave_right_degree();
-        eps = graph->stat_res[graph->node_num*0.8];
-    }
+    graph->statistics_eps_per_edge(logger_path);
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
     if (method == 1)
         graph->index_query_union(eps, left_miu, right_miu);
 
    
-    std::ofstream fout(result_path, std::ios::binary);
-    int left_num = graph->left_nodes+1;
-    fout.write((char*)&left_num,sizeof(int));
-   for(int i=0;i<left_num;i++){
-         int result = graph->find_root(i);
-        fout.write((char*)&result,sizeof(int));
+    std::ofstream fout(result_path);
+    fout<<"id,label"<<endl;
+    std::map<int,int> cluster_id_map;
+    int count = 1;
+    int count_core = 0;
+    for(auto item:graph->similarity_square_){
+        printf("%d %d %.2f\n", item.first.first, item.first.second, item.second);
     }
+
+
+
+   for(int i=0;i<graph->node_num;i++){
+       if(graph->core_bm_[i]) count_core++;
+       if(graph->core_bm_[i])
+       std::cerr<<"core:: "<<i<<" "<<graph->core_bm_[i]<<" "<<graph->graph_[i].size()<<std::endl;
+       int result = graph->fa_[i];
+         if(result==i && !graph->core_bm_[i]) result=-1;
+         if(cluster_id_map[result]==0){
+             cluster_id_map[result] = count;
+             count++;
+         }
+         fout<<i<<","<<result<<endl;
+    }
+   std::cerr<<count<<endl;
+   std::cerr<<count_core<<endl;
 
     return 0;
 }

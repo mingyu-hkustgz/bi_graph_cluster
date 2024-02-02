@@ -8,7 +8,7 @@
 *.naive
 *.mat
 build
+venv
 cmake-build-debug
 .idea
-/DATA/datasets/
-/DATA/demo/
+/DATA

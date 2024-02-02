@@ -8,8 +8,8 @@ void Graph::load_graph() {
     std::ifstream fin(graph_path);
     int x, y;
     fin >> left_nodes >> right_nodes >> node_num >> edge_num;
-    node_num += 2;
-    graph_.resize(node_num + 2);
+    node_num += 3;
+    graph_.resize(node_num);
     max_degree_ = 0;
     boost::unordered_map<std::pair<int, int>, bool, boost::hash<std::pair<int, int>>> check_tag;
     for (int i = 0; i < edge_num; i++) {
@@ -25,7 +25,6 @@ void Graph::load_graph() {
     }
     for (int i = 0; i < node_num; i++) max_degree_ = std::max(max_degree_, (int) graph_[i].size());
     std::cerr << "load graph finished with node num:: " << node_num << " " << "edge num::" << edge_num << std::endl;
-    node_two_hop_.resize(node_num, -1);
 }
 
 void Graph::save_naive_data(char *filename) {
@@ -102,7 +101,6 @@ void Graph::save_index_data(char *filename) {
         fout.write((char *) index_core_left[i].data(), sizeof(int) * index_core_cnt_left[i]);
         fout.write((char *) index_core_right[i].data(), sizeof(int) * index_core_cnt_right[i]);
     }
-    fout.write((char *) node_two_hop_.data(), sizeof(LL) * node_num);
 }
 
 
@@ -148,6 +146,4 @@ void Graph::load_index_data(char *filename) {
         fin.read((char *) index_core_left[i].data(), sizeof(int) * index_core_cnt_left[i]);
         fin.read((char *) index_core_right[i].data(), sizeof(int) * index_core_cnt_right[i]);
     }
-    node_two_hop_.resize(node_num);
-    fin.read((char *) node_two_hop_.data(), sizeof(LL) * node_num);
 }

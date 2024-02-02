@@ -18,8 +18,10 @@ void Graph::set_union(int u, int v) const {
     int ru = find_root(u);
     int rv = find_root(v);
     if (ru == rv) return;
-    if (rv < ru)
-        fa_[ru] = rv;
-    else
+    if(rank_[ru] < rank_[rv]) fa_[ru] = rv;
+    else if(rank_[ru] > rank_[rv]) fa_[rv] = ru;
+    else {
         fa_[rv] = ru;
+        ++ rank_[ru];
+    }
 }

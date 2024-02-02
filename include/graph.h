@@ -53,8 +53,6 @@ public:
 
     void get_two_hop_map(int u, std::unordered_map<int, int> &index_map);
 
-    void get_two_hop_count(int u);
-
     void naive_cluster_construct(bool use_hash=true);
 
     void naive_parallel_cluster_construct(int threads);
@@ -75,17 +73,9 @@ public:
 
     void index_sampling_parallel_cluster_construct(int threads);
 
-    void parallel_sort_graph(int threads);
-
-    void parallel_get_two_hop(int threads);
-
-    void naive_query_two_stage(float eps, int l_miu, int r_miu);
-
     void naive_query_union(float eps, int l_miu, int r_miu);
 
     void index_query_union(float eps, int l_miu, int r_miu);
-
-    void index_query_two_stage(float eps, int l_miu, int r_miu);
 
     void dynamic_index_init(char *filename);
 
@@ -178,7 +168,6 @@ public:
                 }
             }
         }
-        node_two_hop_.resize(node_num, -1);
         for (int i = 0; i < node_num; i++) max_degree_ = std::max(max_degree_, (int) graph_[i].size());
     }
 
@@ -198,7 +187,6 @@ public:
             }
         }
         for (int i = 0; i < node_num; i++) max_degree_ = std::max(max_degree_, (int) graph_[i].size());
-        node_two_hop_.resize(node_num, -1);
     }
 
 
@@ -211,7 +199,7 @@ public:
     /*
      * join set
      */
-    int *fa_;
+    int *fa_, *rank_;
 
     float q_eps_;
     int q_miu_;
@@ -224,7 +212,6 @@ public:
     char *graph_path;
     boost::dynamic_bitset<> core_bm_;
     std::vector<std::pair<int, int>> result_non_core_;
-    std::vector<LL> node_two_hop_;
     std::vector<std::unordered_map<int, bool> > hash_set;
 
     boost::dynamic_bitset<> dynamic_bm_;
