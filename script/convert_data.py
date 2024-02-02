@@ -3,12 +3,11 @@ from tqdm import tqdm
 
 source = './DATA'
 if __name__ == "__main__":
-    # files = os.listdir(source)
-    # print(files)
-    # files.sort()
-    files = ["brunson_revolution_revolution"]
+    files = os.listdir(source)
+    print(files)
+    files.sort()
     for dataset in files:
-        data_file_path = f"{source}/out.{dataset}"
+        data_file_path = f"{source}/{dataset}/out.{dataset}"
         print(f"now:: data set -> {dataset}")
         f = open(data_file_path, "r")
         line = f.readline()
@@ -34,7 +33,7 @@ if __name__ == "__main__":
                 break
         f.close()
 
-        save_path = f"{source}/{dataset}.graph"
+        save_path = f"{source}/{dataset}/{dataset}.graph"
         out_put_file = open(save_path, "w")
         node_num = left_num + right_num
         edge_num = len(edges)
@@ -42,34 +41,7 @@ if __name__ == "__main__":
         for item_edge in tqdm(edges):
             print(str(item_edge[0]) + " " + str(item_edge[1]), file=out_put_file)
 
-        # label_path = f"{source}/{dataset}/labels.txt"
-        # f = open(label_path, "r")
-        # line = f.readline()
-        # labels = {}
-        # while line:
-        #     line = line.replace('\t', ' ')
-        #     raw = line.split()
-        #     line = f.readline()
-        #     if raw[0] == '%':
-        #         continue
-        #     labels[int(raw[0])] = int(raw[1])
-        #     count += 1
-        #     if count % 1000000 == 0:
-        #         print("current tag:: " + str(count) + " left id:: " + str(left_num))
-        #     if line == "":
-        #         break
-        # f.close()
-
-        node_csv = f"./DATA/{dataset}-node.csv"
-        out_put_file = open(node_csv, "w")
-        print("id,label", file=out_put_file)
-        for i in range(left_num):
-            print(f"{i},none", file=out_put_file)
-
-        for i in range(right_num):
-            print(f"{i + left_num + 1},none", file=out_put_file)
-
-        node_csv = f"./DATA/{dataset}-edge.csv"
+        node_csv = f"./DATA/{dataset}/{dataset}-edge.csv"
         out_put_file = open(node_csv, "w")
         print("source,target", file=out_put_file)
         for item_edge in edges:

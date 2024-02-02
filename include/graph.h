@@ -51,15 +51,14 @@ public:
 
     LL fast_compute_common_bflys(int u, int v, std::unordered_map<int, int> &index_map);
 
+
     void get_two_hop_map(int u, std::unordered_map<int, int> &index_map);
 
     void naive_cluster_construct(bool use_hash=true);
 
+    void naive_reconstruct_cluster_construct(bool use_hash=true);
+
     void naive_parallel_cluster_construct(int threads);
-
-    void naive_sampling_cluster_construct();
-
-    void naive_sampling_parallel_cluster_construct(int threads);
 
     void sort_nbr_by_similarity(int u);
 
@@ -69,13 +68,11 @@ public:
 
     void index_parallel_cluster_construct(int threads);
 
-    void index_sampling_cluster_construct();
-
-    void index_sampling_parallel_cluster_construct(int threads);
-
     void naive_query_union(float eps, int l_miu, int r_miu);
 
     void index_query_union(float eps, int l_miu, int r_miu);
+
+    void reconstruct_query_union(float eps, int miu);
 
     void dynamic_index_init(char *filename);
 

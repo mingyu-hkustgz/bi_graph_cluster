@@ -35,6 +35,7 @@ LL Graph::fast_compute_common_bflys(int u, int v, std::unordered_map<int, int> &
     return bfc_per_edge;
 }
 
+
 void Graph::get_two_hop_map(int u, std::unordered_map<int, int> &index_map) {
     for (auto neighbor: graph_[u]) {
         for (auto two_hop_neighborhood: graph_[neighbor]) {

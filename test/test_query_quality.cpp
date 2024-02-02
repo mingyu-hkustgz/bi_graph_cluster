@@ -4,8 +4,8 @@
 #include <cmath>
 #include <getopt.h>
 #include "graph.h"
-#include "nmi.h"
 #define HASHMAP
+using namespace std;
 
 int main(int argc, char *argv[]) {
     const struct option longopts[] = {
@@ -78,12 +78,20 @@ int main(int argc, char *argv[]) {
         graph->index_cluster_construct();
         std::cerr << "index construct" << std::endl;
     }
-
+    if (method == 2) {
+        graph->naive_reconstruct_cluster_construct();
+        std::cerr << "reconstruct construct" << std::endl;
+    }
+    eps = 0.4;
+    left_miu = 2;
+    right_miu =2;
     graph->statistics_eps_per_edge(logger_path);
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
     if (method == 1)
         graph->index_query_union(eps, left_miu, right_miu);
+    if (method == 2)
+        graph->reconstruct_query_union(eps, left_miu);
 
    
     std::ofstream fout(result_path);
@@ -91,13 +99,14 @@ int main(int argc, char *argv[]) {
     std::map<int,int> cluster_id_map;
     int count = 1;
     int count_core = 0;
-    for(auto item:graph->similarity_square_){
-        printf("%d %d %.2f\n", item.first.first, item.first.second, item.second);
-    }
+//    for(auto item:graph->similarity_square_){
+//        printf("%d %d %.2f\n", item.first.first, item.first.second, item.second);
+//    }
 
 
 
    for(int i=0;i<graph->node_num;i++){
+       if(graph->graph_[i].empty()) continue;
        if(graph->core_bm_[i]) count_core++;
        if(graph->core_bm_[i])
        std::cerr<<"core:: "<<i<<" "<<graph->core_bm_[i]<<" "<<graph->graph_[i].size()<<std::endl;

@@ -85,26 +85,6 @@ int main(int argc, char *argv[]) {
         std::cerr << "index construct" << std::endl;
         graph->save_index_data(index_path);
     }
-    if (method == 4) {
-        graph->naive_sampling_cluster_construct();
-        std::cerr << "index construct" << std::endl;
-        graph->save_naive_data(index_path);
-    }
-    if (method == 5) {
-        graph->naive_sampling_parallel_cluster_construct(thread);
-        std::cerr << "index construct" << std::endl;
-        graph->save_naive_data(index_path);
-    }
-    if (method == 6) {
-        graph->index_sampling_cluster_construct();
-        std::cerr << "index construct" << std::endl;
-        graph->save_index_data(index_path);
-    }
-    if (method == 7) {
-        graph->index_sampling_parallel_cluster_construct(thread);
-        std::cerr << "index construct" << std::endl;
-        graph->save_index_data(index_path);
-    }
     auto e = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = e - s;
     double time_slap = diff.count();

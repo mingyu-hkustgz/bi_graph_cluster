@@ -14,13 +14,9 @@ else()
     message(FATAL_ERROR "no OpenMP supprot")
 endif()
 
-find_package(Boost)
-if (BOOST_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${Boost_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Boost_CXX_FLAGS}")
-else()
-    message(FATAL_ERROR "no Boost supprot")
-endif()
+include_directories(D:/software/boost_1_78_0/)
+include_directories(D:/software/eigen-3.4.0)
+link_directories(D:/software/boost_1_78_0/libs)
 
 add_definitions(-std=c++17 -Ofast)
 
