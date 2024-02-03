@@ -14,7 +14,6 @@ void Graph::naive_query_union(float eps, int l_miu, int r_miu) {
 
     if(fa_ == nullptr) fa_ = new int[node_num];
     if(rank_ == nullptr) rank_ = new int[node_num];
-    memset(rank_, 0, sizeof(int)*node_num);
     for(int i = 0; i < node_num; i++) fa_[i] = i;
     core_bm_.resize(node_num);
 
@@ -46,7 +45,8 @@ void Graph::naive_query_union(float eps, int l_miu, int r_miu) {
     std::vector<int> hit_map;
     hit_map.resize(node_num);
     for(auto item:result_non_core_){
-        hit_map[item.second]++;
+        if(!core_bm_[item.second])
+            hit_map[item.second]++;
     }
     for(auto item:result_non_core_){
         if(hit_map[item.second]>1) fa_[item.second]=-1;
@@ -138,8 +138,6 @@ void Graph::reconstruct_query_union(float eps, int miu){
     float eps_d = eps;
 
     if(fa_ == nullptr) fa_ = new int[node_num];
-    if(rank_ == nullptr) rank_ = new int[node_num];
-    memset(rank_, 0, sizeof(int)*node_num);
     for(int i = 0; i < node_num; i++) fa_[i] = i;
     core_bm_.resize(node_num);
 
@@ -167,13 +165,17 @@ void Graph::reconstruct_query_union(float eps, int miu){
     std::vector<int> hit_map;
     hit_map.resize(node_num);
     for(auto item:result_non_core_){
-        hit_map[item.second]++;
+        if(!core_bm_[item.second])
+            hit_map[item.second]++;
     }
     for(auto item:result_non_core_){
         if(hit_map[item.second]>1) fa_[item.second]=-1;
+        else
+            fa_[item.second] = item.first;
     }
-    for(int i=0;i<node_num;i++){
-        if(fa_[i]==i&&!core_bm_[i]) fa_[i]=-1;
+    for(int i = 0;i < node_num; i++){
+        if(fa_[i] != -1)
+            fa_[i] = find_root(i);
     }
 }
 

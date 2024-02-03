@@ -82,9 +82,9 @@ int main(int argc, char *argv[]) {
         graph->naive_reconstruct_cluster_construct();
         std::cerr << "reconstruct construct" << std::endl;
     }
-    eps = 0.4;
+    eps = 0.50;
     left_miu = 2;
-    right_miu =2;
+    right_miu = 2;
     graph->statistics_eps_per_edge(logger_path);
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 
    
     std::ofstream fout(result_path);
-    fout<<"id,label"<<endl;
+    fout<<"id,tag"<<endl;
     std::map<int,int> cluster_id_map;
     int count = 1;
     int count_core = 0;

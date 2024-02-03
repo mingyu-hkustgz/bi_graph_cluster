@@ -51,7 +51,6 @@ public:
 
     LL fast_compute_common_bflys(int u, int v, std::unordered_map<int, int> &index_map);
 
-
     void get_two_hop_map(int u, std::unordered_map<int, int> &index_map);
 
     void naive_cluster_construct(bool use_hash=true);
