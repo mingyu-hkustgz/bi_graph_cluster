@@ -12,4 +12,5 @@ venv
 cmake-build-debug
 .idea
 /DATA
+/result
 /bench/__pycache__

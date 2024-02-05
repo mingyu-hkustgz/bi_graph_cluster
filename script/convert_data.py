@@ -3,9 +3,10 @@ from tqdm import tqdm
 
 source = './DATA'
 if __name__ == "__main__":
-    files = os.listdir(source)
-    print(files)
-    files.sort()
+    # files = os.listdir(source)
+    # print(files)
+    # files.sort()
+    files = ["example"]
     for dataset in files:
         data_file_path = f"{source}/{dataset}/out.{dataset}"
         print(f"now:: data set -> {dataset}")

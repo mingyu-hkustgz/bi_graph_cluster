@@ -34,13 +34,14 @@ int main(int argc, char *argv[]) {
     char graph_path[256] = "";
     char result_path[256] = "";
     char logger_path[256] = "";
+    char weight_path[256] = "";
     int left_miu = 1, right_miu = 1;
     float eps = 0.00;
     int method = 0;
 
 
     while (iarg != -1) {
-        iarg = getopt_long(argc, argv, "g:l:r:e:i:m:s:d:", longopts, &ind);
+        iarg = getopt_long(argc, argv, "g:l:r:e:i:m:s:d:w:", longopts, &ind);
         switch (iarg) {
             case 'g':
                 if (optarg) strcpy(graph_path, optarg);
@@ -66,6 +67,9 @@ int main(int argc, char *argv[]) {
             case 'd':
                 if (optarg)strcpy(logger_path, optarg);
                 break;
+            case 'w':
+                if (optarg)strcpy(weight_path, optarg);
+                break;
         }
     }
     auto *graph = new Graph(graph_path);
@@ -82,9 +86,6 @@ int main(int argc, char *argv[]) {
         graph->naive_reconstruct_cluster_construct();
         std::cerr << "reconstruct construct" << std::endl;
     }
-    eps = 0.50;
-    left_miu = 2;
-    right_miu = 2;
     graph->statistics_eps_per_edge(logger_path);
     if (method == 0)
         graph->naive_query_union(eps, left_miu, right_miu);
@@ -121,6 +122,8 @@ int main(int argc, char *argv[]) {
    std::cerr<<count<<endl;
    std::cerr<<count_core<<endl;
 
+
+    graph->save_similarity_edge(weight_path);
     return 0;
 }
 /*

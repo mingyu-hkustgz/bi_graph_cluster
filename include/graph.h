@@ -140,6 +140,18 @@ public:
         fout.write((char *) stat_res.data(), sizeof(float) * num);
     }
 
+    void save_similarity_edge(char *filename){
+        std::ofstream fout(filename);
+        fout<<node_num<<" "<<edge_num<<std::endl;
+        for(int i=0;i<node_num;i++){
+            for(auto u:graph_[i]){
+                if(i < u)
+                fout<<i<<" "<<u<<" "<<similarity_square_[std::make_pair(i,u)]<<std::endl;
+            }
+        }
+    }
+
+
     void generate_test_examples(int n) {
         node_num = n;
         edge_num = n;
