@@ -53,6 +53,8 @@ public:
 
     void get_two_hop_map(int u, std::unordered_map<int, int> &index_map);
 
+    void get_two_hop_count(int u);
+
     void naive_cluster_construct(bool use_hash=true);
 
     void naive_reconstruct_cluster_construct(bool use_hash=true);
@@ -229,6 +231,7 @@ public:
     std::vector<float> *nbr_order_;
     std::unordered_map<int, int> *nbr_;
     std::vector<float> stat_res;
+    std::vector<LL> node_two_hop_;
 
 };
 

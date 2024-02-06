@@ -16,9 +16,9 @@ else()
 endif()
 
 # windows dependency
-#include_directories(D:/software/boost_1_78_0/)
-#include_directories(D:/software/eigen-3.4.0)
-#link_directories(D:/software/boost_1_78_0/libs)
+include_directories(D:/software/boost_1_78_0/)
+include_directories(D:/software/eigen-3.4.0)
+link_directories(D:/software/boost_1_78_0/libs)
 
 add_definitions(-std=c++17 -Ofast)
 

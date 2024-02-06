@@ -42,22 +42,24 @@ void Graph::naive_query_union(float eps, int l_miu, int r_miu) {
             }
         }
     }
-    std::unordered_map<int,int> hit_map;
+    std::vector<int> hit_map;
+    hit_map.resize(node_num, 0);
     for(auto item:result_non_core_){
         if(hit_map[item.second]==-1) continue;
         if(!core_bm_[item.second]){
-            if(hit_map[item.second]==0) hit_map[item.second] = item.first;
-            else if(hit_map[item.second]!=item.first) hit_map[item.second] = -1;
+            if(hit_map[item.second]==0) hit_map[item.second] = find_root(item.first);
+            else if(hit_map[item.second]!= find_root(item.first)) hit_map[item.second] = -1;
         }
     }
     for(auto item:result_non_core_){
         if(hit_map[item.second]==-1) fa_[item.second]=-1;
         else
-            fa_[item.second] = item.first;
+            fa_[item.second] = find_root(item.first);
     }
     for(int i = 0;i < node_num; i++){
         if(fa_[i] != -1)
             fa_[i] = find_root(i);
+        if(!core_bm_[i] &&  fa_[i] == i) fa_[i]=-1;
     }
 }
 
@@ -167,22 +169,24 @@ void Graph::reconstruct_query_union(float eps, int miu){
             }
         }
     }
-    std::unordered_map<int,int> hit_map;
+    std::vector<int> hit_map;
+    hit_map.resize(node_num, 0);
     for(auto item:result_non_core_){
         if(hit_map[item.second]==-1) continue;
         if(!core_bm_[item.second]){
-            if(hit_map[item.second]==0) hit_map[item.second] = item.first;
-            else if(hit_map[item.second]!=item.first) hit_map[item.second] = -1;
+            if(hit_map[item.second]==0) hit_map[item.second] = find_root(item.first);
+            else if(hit_map[item.second]!= find_root(item.first)) hit_map[item.second] = -1;
         }
     }
     for(auto item:result_non_core_){
         if(hit_map[item.second]==-1) fa_[item.second]=-1;
         else
-            fa_[item.second] = item.first;
+            fa_[item.second] = find_root(item.first);
     }
     for(int i = 0;i < node_num; i++){
         if(fa_[i] != -1)
             fa_[i] = find_root(i);
+        if(!core_bm_[i] &&  fa_[i] == i) fa_[i]=-1;
     }
 }
 

@@ -100,12 +100,6 @@ int main(int argc, char *argv[]) {
     std::map<int,int> cluster_id_map;
     int count = 1;
     int count_core = 0;
-//    for(auto item:graph->similarity_square_){
-//        printf("%d %d %.2f\n", item.first.first, item.first.second, item.second);
-//    }
-
-
-
    for(int i=0;i<graph->node_num;i++){
        if(graph->graph_[i].empty()) continue;
        if(graph->core_bm_[i]) count_core++;
@@ -121,8 +115,6 @@ int main(int argc, char *argv[]) {
     }
    std::cerr<<count<<endl;
    std::cerr<<count_core<<endl;
-
-
     graph->save_similarity_edge(weight_path);
     return 0;
 }

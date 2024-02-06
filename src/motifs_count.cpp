@@ -43,3 +43,11 @@ void Graph::get_two_hop_map(int u, std::unordered_map<int, int> &index_map) {
         }
     }
 }
+
+void Graph::get_two_hop_count(int u) {
+    node_two_hop_[u] = 0;
+    for (auto neighbor: graph_[u]) {
+        node_two_hop_[u] += (LL)graph_[neighbor].size();
+    }
+    node_two_hop_[u] -= (LL)graph_[u].size();
+}
