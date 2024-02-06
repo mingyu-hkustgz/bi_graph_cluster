@@ -1,3 +1,10 @@
-datasets=("actor-movie","actor2","amazon-ratings","brunson_corporate-leadership_corporate-leadership", "brunson_revolution_revolution", "citeulike-ui", "dblp-author", "dbpedia-team", "dbpedia-writer", "edit-bmwikiquote", "flickr-groupmemberships", "github", "munmun_twitterex_ut")
-#datasets=("edit-biwikibooks")
+datasets=("actor-movie" "actor2" "amazon-ratings" "citeulike-ui" "dblp-author" "dbpedia-writer" "flickr-groupmemberships" "github" "munmun_twitterex_ut")
+
+# small graph
+# datasets=("dbpedia-writer" "github")
+# medium graph
+# datasets=("actor-movie" "actor2" "amazon-ratings" "citeulike-ui" "munmun_twitterex_ut")
+# large graph
+# datasets=("dblp-author" "flickr-groupmemberships")
+
 source_path="$HOME/DATA/bi-graph_data/"

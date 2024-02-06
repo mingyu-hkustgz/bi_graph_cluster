@@ -89,12 +89,6 @@ void Graph::save_index_data(char *filename) {
             fout.write((char *) &similarity, sizeof(float));
         }
     }
-    for (int i = 0; i < node_num; i++) {
-        for (auto v: graph_[i]) {
-            LL com_fly = common_bflys_[std::make_pair(i, v)];
-            fout.write((char *) &com_fly, sizeof(LL));
-        }
-    }
     fout.write((char *) index_core_cnt_left.data(), sizeof(int) * (max_degree_ + 1));
     fout.write((char *) index_core_cnt_right.data(), sizeof(int) * (max_degree_ + 1));
     for (int i = 1; i <= max_degree_; i++) {
@@ -124,14 +118,6 @@ void Graph::load_index_data(char *filename) {
             fin.read((char *) &similarity, sizeof(float));
             similarity_square_[std::make_pair(i, v)] = similarity;
             similarity_square_[std::make_pair(v, i)] = similarity;
-        }
-    }
-    for (int i = 0; i < node_num; i++) {
-        for (auto v: graph_[i]) {
-            int com_fly;
-            fin.read((char *) &com_fly, sizeof(LL));
-            common_bflys_[std::make_pair(i, v)] = com_fly;
-            common_bflys_[std::make_pair(v, i)] = com_fly;
         }
     }
     index_core_cnt_left.resize(max_degree_ + 1);
