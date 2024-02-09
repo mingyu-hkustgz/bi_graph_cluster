@@ -1,4 +1,4 @@
- source set.sh
+source set.sh
 
 bash make_dir.sh
 
