@@ -1,7 +1,3 @@
-//
-// Created by Mingyu on 24-1-7.
-//
-
 #include "graph.h"
 
 void Graph::naive_query_union(float eps, int l_miu, int r_miu) {

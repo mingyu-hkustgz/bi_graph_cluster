@@ -1,7 +1,3 @@
-//
-// Created by Mingyu on 23-12-25.
-//
-
 #ifndef BI_GRAPH_CLUSTER_GRAPH_H
 #define BI_GRAPH_CLUSTER_GRAPH_H
 #define HASHMAP
