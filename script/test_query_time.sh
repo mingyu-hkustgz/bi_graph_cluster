@@ -15,6 +15,3 @@ for data in "${datasets[@]}"; do
   ./cmake-build-debug/test/test_query_time -g ${graph_path} -i ${index_path} -s ${result_path} -m 1 &
 
 done
-
-
-
