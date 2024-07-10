@@ -60,16 +60,27 @@ int main(int argc, char *argv[]) {
         graph->load_naive_data(index_path);
     if (method == 1)
         graph->load_index_data(index_path);
+    if (method == 2)
+        graph->load_naive_data(index_path);
+
 
     freopen(result_path, "a", stdout);
     std::cout.setf(std::ios::fixed);
     std::cout.precision(8);
     std::vector<double> query_var_eps_time, query_var_lmiu_time, query_var_rmiu_time;
-    double ave_left_node,ave_right_node;
-    ave_left_node = graph->get_ave_left_degree();
-    ave_right_node = graph->get_ave_right_degree();
-    left_miu = ave_left_node + 0.5;
-    right_miu = ave_right_node + 0.5;
+    double ave_left_node,ave_right_node,ave_degree;
+    if(method!=2){
+        ave_left_node = graph->get_ave_left_degree();
+        ave_right_node = graph->get_ave_right_degree();
+        left_miu = ave_left_node + 0.5;
+        right_miu = ave_right_node + 0.5;
+    }
+    LL all_edges = 0.0;
+    for(int i=0;i<graph->graph_.size();i++){
+        all_edges += graph->graph_[i].size();
+    }
+    all_edges /= graph->graph_.size();
+    printf("ave degree:: %lld", all_edges);
     printf("nodes:: %d left nodes:: %d right nodes:: %d ave left degree %.4f ave right degree %.4f",
            graph->node_num,graph->left_nodes,graph->right_nodes,ave_left_node,ave_right_node);
     for(int i=1;i<=5;i++){
@@ -79,6 +90,8 @@ int main(int argc, char *argv[]) {
             graph->naive_query_union(eps, left_miu, right_miu);
         if (method == 1)
             graph->index_query_union(eps, left_miu, right_miu);
+        if (method == 2)
+            graph->reconstruct_query_union(eps, all_edges);
         auto e = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = e - s;
         double time_slap = diff.count();
@@ -91,6 +104,8 @@ int main(int argc, char *argv[]) {
             graph->naive_query_union(eps, tmp_left, right_miu);
         if (method == 1)
             graph->index_query_union(eps, tmp_left, right_miu);
+        if (method == 2)
+            graph->reconstruct_query_union(eps, tmp_left);
         auto e = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = e - s;
         double time_slap = diff.count();
@@ -103,6 +118,8 @@ int main(int argc, char *argv[]) {
             graph->naive_query_union(eps, left_miu, tmp_right);
         if (method == 1)
             graph->index_query_union(eps, left_miu, tmp_right);
+        if (method == 2)
+            graph->reconstruct_query_union(eps, tmp_right);
         auto e = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = e - s;
         double time_slap = diff.count();
