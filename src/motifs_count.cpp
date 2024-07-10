@@ -1,6 +1,3 @@
-//
-// Created by Mingyu on 24-1-7.
-//
 #include "graph.h"
 
 LL Graph::exact_neighbor_intersections(int u, int v) {

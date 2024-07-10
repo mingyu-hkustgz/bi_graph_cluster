@@ -1,6 +1,3 @@
-//
-// Created by Mingyu on 24-1-7.
-//
 #include "graph.h"
 
 int Graph::find_root(int u) const {

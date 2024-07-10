@@ -1,6 +1,3 @@
-//
-// Created by mingyu on 23-12-25.
-//
 #include <chrono>
 #include <vector>
 #include <iostream>
