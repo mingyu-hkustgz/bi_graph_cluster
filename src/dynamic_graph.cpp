@@ -7,10 +7,7 @@ void Graph::dynamic_index_init(char *filename) {
     fin.read((char *) &left_nodes, sizeof(int));
     fin.read((char *) &right_nodes, sizeof(int));
     fin.read((char *) &max_degree_, sizeof(int));
-    dynamic_bm_.resize(node_num, false);
-    nbr_order_ = new std::vector<float>[node_num];
-    nbr_ = new std::unordered_map<int, int>[node_num];
-    nbr_mp_.resize(node_num, std::multimap<float, int, std::greater<>>());
+
     cores_mp_left_.resize(max_degree_ + 1, std::multimap<float, int, std::greater<>>());
     cores_mp_right_.resize(max_degree_ + 1, std::multimap<float, int, std::greater<>>());
     graph_.resize(node_num);
@@ -25,18 +22,6 @@ void Graph::dynamic_index_init(char *filename) {
             float similarity;
             fin.read((char *) &similarity, sizeof(float));
             similarity_square_[std::make_pair(i, v)] = similarity;
-            similarity_square_[std::make_pair(v, i)] = similarity;
-            nbr_order_[i].push_back(similarity);
-            nbr_mp_[i].emplace(similarity, v);
-        }
-    }
-    for (int i = 0; i < node_num; i++) {
-        for (auto v: graph_[i]) {
-            int com_fly;
-            fin.read((char *) &com_fly, sizeof(int));
-            common_bflys_[std::make_pair(i, v)] = com_fly;
-            common_bflys_[std::make_pair(v, i)] = com_fly;
-            nbr_[i].emplace(v, com_fly);
         }
     }
     index_core_cnt_left.resize(max_degree_ + 1);
@@ -52,11 +37,20 @@ void Graph::dynamic_index_init(char *filename) {
         fin.read((char *) index_core_right[i].data(), sizeof(int) * index_core_cnt_right[i]);
         for (int j = 0; j < index_core_cnt_left[i]; j++) {
             unsigned id = index_core_left[i][j];
-            cores_mp_left_[i].emplace(nbr_order_[id][i - 1], id);
+            float similarity = similarity_square_[std::make_pair(id, graph_[id][i - 1])];
+            cores_mp_left_[i].emplace(similarity, id);
         }
         for (int j = 0; j < index_core_cnt_right[i]; j++) {
             unsigned id = index_core_right[i][j];
-            cores_mp_right_[i].emplace(nbr_order_[id][i - 1], id);
+            float similarity = similarity_square_[std::make_pair(id, graph_[id][i - 1])];
+            cores_mp_right_[i].emplace(similarity, id);
+        }
+    }
+    for (int i = 0; i < node_num; i++) {
+        for (auto v: graph_[i]) {
+            LL com_fly;
+            fin.read((char *) &com_fly, sizeof(LL));
+            common_bflys_[std::make_pair(i, v)] = com_fly;
         }
     }
 }
@@ -71,20 +65,13 @@ void Graph::recompute_edge_similarity(int u, int v) {
 }
 
 
-
 void Graph::naive_insert_edge(int u, int v) {
     int left = std::min(u, v), right = std::max(u, v);
     if (left > left_nodes || right <= left_nodes) return;
     for (auto neighbor: graph_[u]) {
         if (neighbor == v) return;
     }
-    int new_btf = 0;
-    std::unordered_map<int, int> two_hop_map;
-    get_two_hop_map(u, two_hop_map);
-    new_btf = fast_compute_common_bflys(u, v, two_hop_map);
-    common_bflys_[std::make_pair(u, v)] = new_btf;
-    common_bflys_[std::make_pair(v, u)] = new_btf;
-    boost::unordered_map<std::pair<int, int>, bool, boost::hash<std::pair<int, int>>> common_edges_;
+    boost::unordered_map<std::pair<int, int>, bool, boost::hash<std::pair<int, int> > > common_edges_;
     for (auto neighbor: graph_[u]) {
         for (auto two_hop: graph_[neighbor]) {
             if (two_hop != u) {
@@ -98,15 +85,27 @@ void Graph::naive_insert_edge(int u, int v) {
             if (common_edges_[std::make_pair(next_u, next_v)]) {
                 common_bflys_[std::make_pair(next_u, next_v)]++;
                 common_bflys_[std::make_pair(next_v, next_u)]++;
+
                 common_bflys_[std::make_pair(u, next_u)]++;
                 common_bflys_[std::make_pair(next_u, u)]++;
+
                 common_bflys_[std::make_pair(next_v, v)]++;
+                common_bflys_[std::make_pair(v, next_v)]++;
             }
 
         }
     }
+    // remove influenced similarity
+    remove_influenced_node(u, v);
     graph_[u].push_back(v);
     graph_[v].push_back(u);
+    LL new_btf = 0;
+    std::unordered_map<int, int> two_hop_map;
+    get_two_hop_map(u, two_hop_map);
+    new_btf = fast_compute_common_bflys(u, v, two_hop_map);
+    common_bflys_[std::make_pair(u, v)] = new_btf;
+    common_bflys_[std::make_pair(v, u)] = new_btf;
+
     for (auto neighbor: graph_[u]) {
         recompute_edge_similarity(neighbor, u);
         for (auto two_hop: graph_[neighbor]) {
@@ -119,6 +118,8 @@ void Graph::naive_insert_edge(int u, int v) {
             recompute_edge_similarity(neighbor, two_hop);
         }
     }
+    // reorder similarity index
+    reorder_index(u, v);
 }
 
 void Graph::naive_delete_edge(int u, int v) {
@@ -132,8 +133,166 @@ void Graph::naive_delete_edge(int u, int v) {
         }
     }
     if (!check) return;
-    int del_btf = 0;
-    std::unordered_map<int, int> two_hop_map;
-    get_two_hop_map(u, two_hop_map);
-    del_btf = fast_compute_common_bflys(u, v, two_hop_map);
+
+    //remove influenced similarity
+    remove_influenced_node(u, v);
+    similarity_square_.erase(std::make_pair(u, v));
+    similarity_square_.erase(std::make_pair(v, u));
+    common_bflys_.erase(std::make_pair(u, v));
+    common_bflys_.erase(std::make_pair(v, u));
+
+    unsigned size = graph_[u].size();
+    for (int i = 0; i < size; i++) {
+        if (graph_[u][i] == v) {
+            std::swap(graph_[u][i], graph_[u][size - 1]);
+            graph_[u].pop_back();
+            break;
+        }
+    }
+
+    size = graph_[v].size();
+    for (int i = 0; i < graph_[v].size(); i++) {
+        if (graph_[v][i] == u) {
+            std::swap(graph_[v][i], graph_[v][size - 1]);
+            graph_[v].pop_back();
+            break;
+        }
+    }
+
+    boost::unordered_map<std::pair<int, int>, bool, boost::hash<std::pair<int, int> > > common_edges_;
+    for (auto neighbor: graph_[u]) {
+        for (auto two_hop: graph_[neighbor]) {
+            if (two_hop != u) {
+                common_edges_[std::make_pair(neighbor, two_hop)] = true;
+                common_edges_[std::make_pair(two_hop, neighbor)] = true;
+            }
+        }
+    }
+    for (auto next_u: graph_[u]) {
+        for (auto next_v: graph_[v]) {
+            if (common_edges_[std::make_pair(next_u, next_v)]) {
+
+                common_bflys_[std::make_pair(next_u, next_v)]--;
+                common_bflys_[std::make_pair(next_v, next_u)]--;
+
+                common_bflys_[std::make_pair(u, next_u)]--;
+                common_bflys_[std::make_pair(next_u, u)]--;
+
+                common_bflys_[std::make_pair(next_v, v)]--;
+                common_bflys_[std::make_pair(v, next_v)]--;
+            }
+        }
+    }
+
+    for (auto neighbor: graph_[u]) {
+        recompute_edge_similarity(neighbor, u);
+        for (auto two_hop: graph_[neighbor]) {
+            recompute_edge_similarity(neighbor, two_hop);
+        }
+    }
+    for (auto neighbor: graph_[v]) {
+        recompute_edge_similarity(neighbor, v);
+        for (auto two_hop: graph_[neighbor]) {
+            recompute_edge_similarity(neighbor, two_hop);
+        }
+    }
+    // reorder similarity index
+    reorder_index(u, v);
+}
+
+void Graph::remove_influenced_node(int u, int v) {
+    std::vector<int> influenced_node;
+    influenced_node.push_back(u);
+    influenced_node.push_back(v);
+    for (auto neighbor: graph_[u]) influenced_node.push_back(neighbor);
+    for (auto neighbor: graph_[v]) influenced_node.push_back(neighbor);
+
+    for (auto node: influenced_node) {
+        for (int j = 0; j < graph_[node].size(); j++) {
+            int deg = j + 1;
+            int neighbor = graph_[node][j];
+            if (node <= left_nodes) {
+                float similarity = similarity_square_[std::make_pair(neighbor, node)];
+                auto range = cores_mp_left_[deg].equal_range(similarity);
+                for (auto it = range.first; it != range.second;) {
+                    if (it->second == node) {
+                        it = cores_mp_left_[deg].erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+            } else {
+                float similarity = similarity_square_[std::make_pair(neighbor, node)];
+                auto range = cores_mp_right_[deg].equal_range(similarity);
+                for (auto it = range.first; it != range.second;) {
+                    if (it->second == node) {
+                        it = cores_mp_right_[deg].erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void Graph::reorder_index(int u, int v) {
+    if (u > v) std::swap(u, v);
+    if (graph_[u].size() > max_degree_) {
+        max_degree_ = graph_[u].size();
+        cores_mp_left_.resize(max_degree_ + 1);
+        cores_mp_right_.resize(max_degree_ + 1);
+    }
+
+    if (graph_[v].size() > max_degree_) {
+        max_degree_ = graph_[v].size();
+        cores_mp_left_.resize(max_degree_ + 1);
+        cores_mp_right_.resize(max_degree_ + 1);
+    }
+
+    std::vector<int> influenced_node;
+    influenced_node.push_back(u);
+    influenced_node.push_back(v);
+    for (auto neighbor: graph_[u]) if (neighbor != v) influenced_node.push_back(neighbor);
+    for (auto neighbor: graph_[v]) if (neighbor != u) influenced_node.push_back(neighbor);
+
+    for (auto node: influenced_node) {
+        sort_nbr_by_similarity(node);
+        for (int j = 0; j < graph_[node].size(); j++) {
+            int cur_deg = j + 1;
+            int neighbor = graph_[node][j];
+            float similarity = similarity_square_[std::make_pair(node, neighbor)];
+            if (node <= left_nodes) {
+                cores_mp_left_[cur_deg].emplace(similarity, node);
+            } else {
+                cores_mp_right_[cur_deg].emplace(similarity, node);
+            }
+        }
+    }
+
+}
+
+int Graph::find_reverse_top(int &node, int &neighbor, float &similarity) {
+    if (graph_[node].size() < 10) {
+        for (int j = 0; j < graph_[node].size(); j++) {
+            if (graph_[node][j] == neighbor) return j + 1;
+        }
+        return -1;
+    }
+
+    int l = 0, r = (int) graph_[node].size() - 1, res;
+    while (l <= r) {
+        int mid = (l + r) >> 1;
+        if (similarity_square_[std::make_pair(node, graph_[node][mid])] < similarity) {
+            l = mid + 1;
+            res = mid;
+        } else r = mid - 1;
+    }
+    while (++res && res < graph_[node].size()) {
+        if (graph_[node][res] == neighbor) {
+            return res + 1;
+        }
+    }
+    return -1;
 }

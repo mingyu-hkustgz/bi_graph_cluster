@@ -34,6 +34,41 @@ def fvecs_write(fname, m):
     ivecs_write(fname, m.view('int32'))
 
 
+def load_bipartite_graph(fname):
+    f = open(fname, "r")
+    line = f.readline()
+    raw = line.split()
+    left_num = int(raw[0])
+    right_num = int(raw[1])
+    node_num = int(raw[2])
+    edge_num = int(raw[3])
+    edges = []
+    count = 0
+    while line:
+        line = f.readline()
+        if line == "":
+            break
+        raw = line.split()
+        left_node = int(raw[0])
+        right_node = int(raw[1]) + left_num + 1
+        edges.append((left_node, right_node))
+        count += 1
+        if count % 1000000 == 0:
+            print("current tag:: " + str(count) + " left id:: " + str(left_num))
+    f.close()
+    return node_num, edge_num, edges
 
-def load_graph(fname, m):
-    pass
+def load_graph_partition_from_csv(fname):
+    f = open(fname, "r")
+    line = f.readline()
+    partition = {}
+    while line:
+        line = f.readline()
+        if line == "":
+            break
+        raw = line.split(",")
+        node = int(raw[0])
+        belong = int(raw[1])
+        partition[node] = belong
+    f.close()
+    return partition

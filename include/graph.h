@@ -33,9 +33,9 @@ public:
 
     void load_naive_data(char *filename);
 
-    void save_index_data(char *filename);
+    void save_index_data(char *filename, bool use_dynamic=false);
 
-    void load_index_data(char *filename);
+    void load_index_data(char *filename, bool use_dynamic=false);
 
     int find_root(int u) const;
 
@@ -69,6 +69,8 @@ public:
 
     void index_query_union(float eps, int l_miu, int r_miu);
 
+    void dynamic_query_union(float eps, int l_miu, int r_miu);
+
     void reconstruct_query_union(float eps, int miu);
 
     void dynamic_index_init(char *filename);
@@ -78,6 +80,12 @@ public:
     void naive_delete_edge(int u, int v);
 
     void recompute_edge_similarity(int u, int v);
+
+    void reorder_index(int u,int v);
+
+    void remove_influenced_node(int u,int v);
+
+    int find_reverse_top(int &node, int &neighbor, float &similarity);
 
     int get_ave_left_degree(){
         LL degree_count = 0;
@@ -132,6 +140,8 @@ public:
             std::cerr << quantile << "/10:: " << stat_res[i] << std::endl;
         }
         std::cerr << "max :: " << stat_res[stat_res.size() - 1] << std::endl;
+        if(!isFileExists_ifstream(filename))
+            return;
         std::ofstream fout(filename, std::ios::binary);
         unsigned num = stat_res.size();
         fout.write((char *) &num, sizeof(unsigned));

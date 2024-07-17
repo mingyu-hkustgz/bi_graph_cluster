@@ -32,4 +32,7 @@
 
 bool isFileExists_ifstream(const char *name);
 
+double compute_modularity(std::vector<std::vector<int>> G, std::unordered_map<int, int> partition,
+                          const std::string& cluster_type = "origin");
+
 #endif //BI_GRAPH_CLUSTER_UTILS_H

@@ -3,22 +3,22 @@
 
 void Graph::naive_cluster_construct(bool use_hash) {
     for (int u = 0; u < node_num; u++) {
-        if (u % (node_num / 100 + 1) == 0) std::cerr << "current :: tag -> :: " << u << std::endl;
+        if (u % (node_num / 100 + 1) == 0 && node_num > 1000) std::cerr << "current :: tag -> :: " << u << std::endl;
         std::unordered_map<int, int> two_hop_map;
-        if(use_hash){
+        if (use_hash) {
             get_two_hop_map(u, two_hop_map);
         }
         for (auto v: graph_[u]) {
             if (v < u) continue;
             LL uv_wedge = ((LL) graph_[u].size() - 1) * ((LL) graph_[v].size() - 1) + 1;
             LL cn = 0;
-            if(use_hash)
+            if (use_hash)
                 cn = fast_compute_common_bflys(u, v, two_hop_map);
             else
-                cn = naive_compute_common_bflys(u,v);
+                cn = naive_compute_common_bflys(u, v);
             common_bflys_[std::make_pair(u, v)] = cn;
             common_bflys_[std::make_pair(v, u)] = cn;
-            long double base_eps = (long double) (cn + 1) /  (long  double)(uv_wedge);
+            long double base_eps = (long double) (cn + 1) / (long double) (uv_wedge);
             float tmp_eps = base_eps;
             similarity_square_[std::make_pair(u, v)] = tmp_eps;
             similarity_square_[std::make_pair(v, u)] = tmp_eps;
@@ -34,7 +34,8 @@ void Graph::naive_parallel_cluster_construct(int threads) {
 #pragma omp critical
         {
             check_tag++;
-            if (check_tag % (node_num / 100 + 1) == 0) std::cerr << "current tag:: " << check_tag << std::endl;
+            if (check_tag % (node_num / 100 + 1) == 0 && node_num > 1000)
+                std::cerr << "current tag:: " << check_tag << std::endl;
         }
         std::unordered_map<int, int> two_hop_map;
         get_two_hop_map(u, two_hop_map);
@@ -48,7 +49,7 @@ void Graph::naive_parallel_cluster_construct(int threads) {
                 common_bflys_[std::make_pair(u, v)] = cn;
                 common_bflys_[std::make_pair(v, u)] = cn;
             }
-            long double base_eps = (long double) (cn + 1) /  (long  double)(uv_wedge);
+            long double base_eps = (long double) (cn + 1) / (long double) (uv_wedge);
             float tmp_eps = base_eps;
 #pragma omp critical
             {
@@ -109,23 +110,23 @@ void Graph::index_cluster_construct(bool use_hash) {
     index_core_cnt_left.resize(max_degree_ + 1, 0);
     index_core_cnt_right.resize(max_degree_ + 1, 0);
     for (int u = 0; u < node_num; ++u) {
-        if (u % (node_num / 100 + 1) == 0) std::cerr << "current :: tag -> :: " << u << std::endl;
+        if (u % (node_num / 100 + 1) == 0 && node_num > 1000) std::cerr << "current :: tag -> :: " << u << std::endl;
         // compute similarity of all edges connected to u
         std::unordered_map<int, int> two_hop_map;
-        if(use_hash){
+        if (use_hash) {
             get_two_hop_map(u, two_hop_map);
         }
         for (auto v: graph_[u]) {
             if (v < u) continue;
             LL uv_wedge = ((LL) graph_[u].size() - 1) * ((LL) graph_[v].size() - 1) + 1;
             LL cn = 0;
-            if(use_hash)
+            if (use_hash)
                 cn = fast_compute_common_bflys(u, v, two_hop_map);
             else
-                cn = naive_compute_common_bflys(u,v);
+                cn = naive_compute_common_bflys(u, v);
             common_bflys_[std::make_pair(u, v)] = cn;
             common_bflys_[std::make_pair(v, u)] = cn;
-            long double base_eps = (long double) (cn + 1) / (long  double)(uv_wedge);
+            long double base_eps = (long double) (cn + 1) / (long double) (uv_wedge);
             float tmp_eps = base_eps;
             similarity_square_[std::make_pair(u, v)] = tmp_eps;
             similarity_square_[std::make_pair(v, u)] = tmp_eps;
@@ -164,7 +165,8 @@ void Graph::index_parallel_cluster_construct(int threads) {
 #pragma omp critical
         {
             check_tag++;
-            if (check_tag % (node_num / 100 + 1) == 0) std::cerr << "current :: " << check_tag << std::endl;
+            if (check_tag % (node_num / 100 + 1) == 0 && node_num > 1000)
+                std::cerr << "current :: " << check_tag << std::endl;
         }
         std::unordered_map<int, int> two_hop_map;
         get_two_hop_map(u, two_hop_map);
@@ -178,7 +180,7 @@ void Graph::index_parallel_cluster_construct(int threads) {
                 common_bflys_[std::make_pair(u, v)] = cn;
                 common_bflys_[std::make_pair(v, u)] = cn;
             }
-            long double base_eps = (long double) (cn + 1) /  (long  double)(uv_wedge);
+            long double base_eps = (long double) (cn + 1) / (long double) (uv_wedge);
             float tmp_eps = base_eps;
 #pragma omp critical
             {
@@ -215,28 +217,28 @@ void Graph::index_parallel_cluster_construct(int threads) {
 }
 
 
-void Graph::naive_reconstruct_cluster_construct(bool use_hash){
+void Graph::naive_reconstruct_cluster_construct(bool use_hash) {
     boost::unordered_map<std::pair<int, int>, bool, boost::hash<std::pair<int, int>>> check_tag;
     std::vector<std::vector<int> > two_hop_graph_;
     two_hop_graph_.resize(node_num);
-    for(int i = 0; i < graph_.size(); i++){
-        for(auto neighbor:graph_[i]){
-            check_tag[std::make_pair(i,neighbor)]=true;
-            check_tag[std::make_pair(neighbor,i)]=true;
-            for(auto two_hop:graph_[neighbor]){
-                if(two_hop==i) continue;
+    for (int i = 0; i < graph_.size(); i++) {
+        for (auto neighbor: graph_[i]) {
+            check_tag[std::make_pair(i, neighbor)] = true;
+            check_tag[std::make_pair(neighbor, i)] = true;
+            for (auto two_hop: graph_[neighbor]) {
+                if (two_hop == i) continue;
                 two_hop_graph_[i].push_back(two_hop);
             }
         }
     }
-    std::cerr<<"finished two hop"<<std::endl;
-    for(int i=0;i<graph_.size();i++){
-        for(auto two_hop:two_hop_graph_[i]){
-            if(!check_tag[std::make_pair(i,two_hop)]){
+    std::cerr << "finished two hop" << std::endl;
+    for (int i = 0; i < graph_.size(); i++) {
+        for (auto two_hop: two_hop_graph_[i]) {
+            if (!check_tag[std::make_pair(i, two_hop)]) {
                 graph_[i].push_back(two_hop);
                 graph_[two_hop].push_back(i);
-                check_tag[std::make_pair(i,two_hop)]=true;
-                check_tag[std::make_pair(two_hop,i)]=true;
+                check_tag[std::make_pair(i, two_hop)] = true;
+                check_tag[std::make_pair(two_hop, i)] = true;
             }
         }
     }
@@ -246,12 +248,12 @@ void Graph::naive_reconstruct_cluster_construct(bool use_hash){
         if (u % (node_num / 100 + 1) == 0) std::cerr << "current :: tag -> :: " << u << std::endl;
         for (auto v: graph_[u]) {
             if (v < u) continue;
-            LL cn = exact_neighbor_intersections(u,v) + 2;
+            LL cn = exact_neighbor_intersections(u, v) + 2;
             LL u_deg = (LL) graph_[u].size() + 1;
             LL v_deg = (LL) graph_[v].size() + 1;
             common_bflys_[std::make_pair(u, v)] = cn;
             common_bflys_[std::make_pair(v, u)] = cn;
-            long double base_eps = (long double) (cn * cn ) /  (long  double)(u_deg * v_deg);
+            long double base_eps = (long double) (cn * cn) / (long double) (u_deg * v_deg);
             float tmp_eps = base_eps;
             similarity_square_[std::make_pair(u, v)] = tmp_eps;
             similarity_square_[std::make_pair(v, u)] = tmp_eps;

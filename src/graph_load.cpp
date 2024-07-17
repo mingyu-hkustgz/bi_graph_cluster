@@ -67,7 +67,7 @@ void Graph::load_naive_data(char *filename) {
     }
 }
 
-void Graph::save_index_data(char *filename) {
+void Graph::save_index_data(char *filename, bool use_dynamic) {
     std::ofstream fout(filename, std::ios::binary);
     fout.write((char *) &node_num, sizeof(int));
     fout.write((char *) &edge_num, sizeof(int));
@@ -91,10 +91,17 @@ void Graph::save_index_data(char *filename) {
         fout.write((char *) index_core_left[i].data(), sizeof(int) * index_core_cnt_left[i]);
         fout.write((char *) index_core_right[i].data(), sizeof(int) * index_core_cnt_right[i]);
     }
+    if (use_dynamic)
+        for (int i = 0; i < node_num; i++) {
+            for (auto v: graph_[i]) {
+                LL com_fly = common_bflys_[std::make_pair(i, v)];
+                fout.write((char *) &com_fly, sizeof(LL));
+            }
+        }
 }
 
 
-void Graph::load_index_data(char *filename) {
+void Graph::load_index_data(char *filename, bool use_dynamic) {
     std::ifstream fin(filename, std::ios::binary);
     fin.read((char *) &node_num, sizeof(int));
     fin.read((char *) &edge_num, sizeof(int));
@@ -128,4 +135,12 @@ void Graph::load_index_data(char *filename) {
         fin.read((char *) index_core_left[i].data(), sizeof(int) * index_core_cnt_left[i]);
         fin.read((char *) index_core_right[i].data(), sizeof(int) * index_core_cnt_right[i]);
     }
+    if (use_dynamic)
+        for (int i = 0; i < node_num; i++) {
+            for (auto v: graph_[i]) {
+                LL com_fly;
+                fin.read((char *) &com_fly, sizeof(LL));
+                common_bflys_[std::make_pair(i, v)] = com_fly;
+            }
+        }
 }

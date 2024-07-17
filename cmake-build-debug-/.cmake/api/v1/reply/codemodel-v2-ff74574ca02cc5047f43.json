@@ -1,0 +1,146 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "src",
+					"jsonFile" : "directory-src-Debug-b6cf2213fc5053b67c22.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				},
+				{
+					"build" : "test",
+					"jsonFile" : "directory-test-Debug-451c0598f41488bb20b9.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "test",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "bi_graph_cluster",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "bi_graph_cluster::@145eef247bfb46b6828c",
+					"jsonFile" : "target-bi_graph_cluster-Debug-9083a0f5a455d6203206.json",
+					"name" : "bi_graph_cluster",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "bi_graph_cluster_s::@145eef247bfb46b6828c",
+					"jsonFile" : "target-bi_graph_cluster_s-Debug-8856b22839ebd1e58757.json",
+					"name" : "bi_graph_cluster_s",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "test_dynamic_index::@36f028580bb02cc8272a",
+					"jsonFile" : "target-test_dynamic_index-Debug-ffac3c31b1031a4bbe02.json",
+					"name" : "test_dynamic_index",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "test_index_time::@36f028580bb02cc8272a",
+					"jsonFile" : "target-test_index_time-Debug-aef1c4722a9553745770.json",
+					"name" : "test_index_time",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "test_index_without_join::@36f028580bb02cc8272a",
+					"jsonFile" : "target-test_index_without_join-Debug-79064022c1e1b29bc743.json",
+					"name" : "test_index_without_join",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "test_query_quality::@36f028580bb02cc8272a",
+					"jsonFile" : "target-test_query_quality-Debug-b1aef2fd09a3870762b1.json",
+					"name" : "test_query_quality",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "test_query_time::@36f028580bb02cc8272a",
+					"jsonFile" : "target-test_query_time-Debug-09d7063b8e442a6ca687.json",
+					"name" : "test_query_time",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/BLD/mingyu/research/graph-mining/bi-graph-cluster/cmake-build-debug-",
+		"source" : "/home/BLD/mingyu/research/graph-mining/bi-graph-cluster"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

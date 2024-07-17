@@ -11,3 +11,6 @@ target_link_libraries(test_query_quality ${PROJECT_NAME})
 
 add_executable(test_index_without_join test_index_without_join.cpp)
 target_link_libraries(test_index_without_join ${PROJECT_NAME})
+
+add_executable(test_dynamic_index test_dynamic_index.cpp)
+target_link_libraries(test_dynamic_index ${PROJECT_NAME})

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <getopt.h>
 #include "graph.h"
+
 #define HASHMAP
 using namespace std;
 
@@ -32,90 +33,102 @@ int main(int argc, char *argv[]) {
 
     char index_path[256] = "";
     char graph_path[256] = "";
-    char result_path[256] = "";
     char logger_path[256] = "";
-    char weight_path[256] = "";
-    int left_miu = 1, right_miu = 1;
-    float eps = 0.00;
-    int method = 0;
-
+    char result_path[256] = "";
 
     while (iarg != -1) {
-        iarg = getopt_long(argc, argv, "g:l:r:e:i:m:s:d:w:", longopts, &ind);
+        iarg = getopt_long(argc, argv, "g:i:d:r:", longopts, &ind);
         switch (iarg) {
             case 'g':
                 if (optarg) strcpy(graph_path, optarg);
                 break;
-            case 'l':
-                if (optarg) left_miu = atoi(optarg);
-                break;
-            case 'r':
-                if (optarg) right_miu = atoi(optarg);
-                break;
-            case 'e':
-                if (optarg) eps = atof(optarg);
-                break;
             case 'i':
                 if (optarg)strcpy(index_path, optarg);
-                break;
-            case 'm':
-                if (optarg) method = atoi(optarg);
-                break;
-            case 's':
-                if (optarg)strcpy(result_path, optarg);
                 break;
             case 'd':
                 if (optarg)strcpy(logger_path, optarg);
                 break;
-            case 'w':
-                if (optarg)strcpy(weight_path, optarg);
+            case 'r':
+                if (optarg)strcpy(result_path, optarg);
                 break;
         }
     }
     auto *graph = new Graph(graph_path);
     graph->load_graph();
-    if (method == 0) {
-        graph->naive_cluster_construct();
-        std::cerr << "naive construct" << std::endl;
+    graph->index_cluster_construct();
+    std::cerr << "index construct" << std::endl;
+    std::unordered_map<int, int> result_mp;
+    double max_origin_modularity = 0.0, max_split_modularity = 0.0;
+    float origin_eps, split_eps;
+    int origin_l, origin_r, split_l, split_r;
+    int split_hub_out_bound = graph->node_num /2;
+    for (int l = 1; l <= 4; l++) {
+        for (int r = 1; r <= 4; r++) {
+            for (float eps = 0.05; eps <= 1.0; eps += 0.05) {
+                graph->index_query_union(eps, l, r);
+                result_mp.clear();
+                graph->core_bm_.clear();
+                int hub_out_count = 0;
+                for (int i = 0; i < graph->node_num; i++) {
+                    if (graph->graph_[i].empty()) continue;
+                    int result = graph->fa_[i];
+                    if (result == i && !graph->core_bm_[i]) result = -1;
+                    result_mp[i] = result;
+                    if (result == -1) hub_out_count++;
+                }
+                std::cerr << l << " " << r << " " << eps << " " << hub_out_count << std::endl;
+                double origin_modularity = compute_modularity(graph->graph_, result_mp, "origin");
+                double split_modularity = compute_modularity(graph->graph_, result_mp, "split");
+                std::cerr << "Origin Modularity:: " << origin_modularity << std::endl;
+                std::cerr << "Split Modularity:: " << split_modularity << std::endl;
+                if (origin_modularity > max_origin_modularity) {
+                    max_origin_modularity = origin_modularity;
+                    origin_eps = eps;
+                    origin_l = l;
+                    origin_r = r;
+                }
+                if (split_modularity > max_split_modularity && hub_out_count < split_hub_out_bound) {
+                    max_split_modularity = split_modularity;
+                    split_eps = eps;
+                    split_l = l;
+                    split_r = r;
+                }
+            }
+        }
     }
-    if (method == 1) {
-        graph->index_cluster_construct();
-        std::cerr << "index construct" << std::endl;
-    }
-    if (method == 2) {
-        graph->naive_reconstruct_cluster_construct();
-        std::cerr << "reconstruct construct" << std::endl;
-    }
-    graph->statistics_eps_per_edge(logger_path);
-    if (method == 0)
-        graph->naive_query_union(eps, left_miu, right_miu);
-    if (method == 1)
-        graph->index_query_union(eps, left_miu, right_miu);
-    if (method == 2)
-        graph->reconstruct_query_union(eps, left_miu);
+    std::cerr << "MAX Origin Modularity:: " << max_origin_modularity << " " << origin_eps << " " << origin_l << " "
+              << origin_r << std::endl;
+    std::cerr << "MAX Split Modularity:: " << max_split_modularity << " " << split_eps << " " << split_l << " "
+              << split_r << std::endl;
 
-   
+
+    graph->index_query_union(split_eps, split_l, split_r);
+    result_mp.clear();
+    graph->core_bm_.clear();
+    int hub_out_count = 0;
     std::ofstream fout(result_path);
-    fout<<"id,tag"<<endl;
-    std::map<int,int> cluster_id_map;
-    int count = 1;
-    int count_core = 0;
-   for(int i=0;i<graph->node_num;i++){
-       if(graph->graph_[i].empty()) continue;
-       if(graph->core_bm_[i]) count_core++;
-       if(graph->core_bm_[i])
-       std::cerr<<"core:: "<<i<<" "<<graph->core_bm_[i]<<" "<<graph->graph_[i].size()<<std::endl;
-       int result = graph->fa_[i];
-         if(result==i && !graph->core_bm_[i]) result=-1;
-         if(cluster_id_map[result]==0){
-             cluster_id_map[result] = count;
-             count++;
-         }
-         fout<<i<<","<<result<<endl;
+    fout<<"id,tag"<<std::endl;
+    for (int i = 0; i < graph->node_num; i++) {
+        if (graph->graph_[i].empty()) continue;
+        int result = graph->fa_[i];
+        if (result == i && !graph->core_bm_[i]) result = -1;
+        result_mp[i] = result;
+        if (result == -1) hub_out_count++;
+        fout<<i<<","<<result<<std::endl;
     }
-   std::cerr<<count<<endl;
-   std::cerr<<count_core<<endl;
-    graph->save_similarity_edge(weight_path);
+    double origin_modularity = compute_modularity(graph->graph_, result_mp, "origin");
+    double split_modularity = compute_modularity(graph->graph_, result_mp, "split");
+    std::cerr << "Origin Modularity:: " << origin_modularity << std::endl;
+    std::cerr << "Split Modularity:: " << split_modularity << std::endl;
+
+    ofstream out(logger_path, std::ios::binary);
+    unsigned dim = 2;
+    for (auto u: result_mp) {
+        out.write((char *) &dim, sizeof(unsigned));
+        out.write((char *) &u.first, sizeof(unsigned));
+        out.write((char *) &u.second, sizeof(unsigned));
+    }
+
     return 0;
 }
 /*
