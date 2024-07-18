@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(bi_graph_cluster)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 
 include_directories(include)
 
@@ -14,7 +14,7 @@ else()
 endif()
 
 
-add_definitions(-std=c++17 -Ofast)
+add_definitions(-std=c++14 -O3)
 
 add_subdirectory(src)
 add_subdirectory(test)

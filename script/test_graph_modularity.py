@@ -126,9 +126,6 @@ if __name__ == "__main__":
                 plt.cla()
 
             # Spectral community
-
-            continue
-
             partition = spectral_clustering_with_sklearn(G, 5)
 
             spectral_modularity = community.modularity(partition, G)

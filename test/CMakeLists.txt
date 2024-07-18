@@ -14,3 +14,6 @@ target_link_libraries(test_index_without_join ${PROJECT_NAME})
 
 add_executable(test_dynamic_index test_dynamic_index.cpp)
 target_link_libraries(test_dynamic_index ${PROJECT_NAME})
+
+add_executable(test_dynamic_time test_dynamic_time.cpp)
+target_link_libraries(test_dynamic_time ${PROJECT_NAME})

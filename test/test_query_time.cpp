@@ -68,23 +68,23 @@ int main(int argc, char *argv[]) {
     std::cout.setf(std::ios::fixed);
     std::cout.precision(8);
     std::vector<double> query_var_eps_time, query_var_lmiu_time, query_var_rmiu_time;
-    double ave_left_node,ave_right_node,ave_degree;
-    if(method!=2){
+    double ave_left_node, ave_right_node, ave_degree;
+    if (method != 2) {
         ave_left_node = graph->get_ave_left_degree();
         ave_right_node = graph->get_ave_right_degree();
         left_miu = ave_left_node + 0.5;
         right_miu = ave_right_node + 0.5;
     }
     LL all_edges = 0.0;
-    for(int i=0;i<graph->graph_.size();i++){
+    for (int i = 0; i < graph->graph_.size(); i++) {
         all_edges += graph->graph_[i].size();
     }
     all_edges /= graph->graph_.size();
     printf("ave degree:: %lld", all_edges);
     printf("nodes:: %d left nodes:: %d right nodes:: %d ave left degree %.4f ave right degree %.4f",
-           graph->node_num,graph->left_nodes,graph->right_nodes,ave_left_node,ave_right_node);
-    for(int i=1;i<=5;i++){
-        eps = 0.2*i;
+           graph->node_num, graph->left_nodes, graph->right_nodes, ave_left_node, ave_right_node);
+    for (int i = 1; i <= 5; i++) {
+        eps = 0.2 * i;
         auto s = std::chrono::high_resolution_clock::now();
         if (method == 0)
             graph->naive_query_union(eps, left_miu, right_miu);
@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
         double time_slap = diff.count();
         query_var_eps_time.push_back(time_slap);
     }
-    for(int tmp_left=2;tmp_left<=20;tmp_left+=2){
-        eps=0.5;
+    for (int tmp_left = 2; tmp_left <= 20; tmp_left += 2) {
+        eps = 0.5;
         auto s = std::chrono::high_resolution_clock::now();
         if (method == 0)
             graph->naive_query_union(eps, tmp_left, right_miu);
@@ -111,8 +111,8 @@ int main(int argc, char *argv[]) {
         double time_slap = diff.count();
         query_var_lmiu_time.push_back(time_slap);
     }
-    for(int tmp_right=2;tmp_right<=20;tmp_right+=2){
-        eps=0.5;
+    for (int tmp_right = 2; tmp_right <= 20; tmp_right += 2) {
+        eps = 0.5;
         auto s = std::chrono::high_resolution_clock::now();
         if (method == 0)
             graph->naive_query_union(eps, left_miu, tmp_right);
@@ -125,27 +125,27 @@ int main(int argc, char *argv[]) {
         double time_slap = diff.count();
         query_var_rmiu_time.push_back(time_slap);
     }
-    if(method==0) printf("naive result::\n");
+    if (method == 0) printf("naive result::\n");
     else printf("index result::\n");
-    for(int i=1;i<=5;i++){
-        printf("eps:: %.6f lmiu %d rmiu %d time(s) %.6f\n",0.2*i, left_miu, right_miu, query_var_eps_time[i-1]);
+    for (int i = 1; i <= 5; i++) {
+        printf("eps:: %.6f lmiu %d rmiu %d time(s) %.6f\n", 0.2 * i, left_miu, right_miu, query_var_eps_time[i - 1]);
     }
 
-    for(int i=1;i<=5;i++) printf("%.6f ",query_var_eps_time[i-1]);
+    for (int i = 1; i <= 5; i++) printf("%.6f ", query_var_eps_time[i - 1]);
     printf("\n");
 
-    for(int i=1;i<=10;i++){
-        printf("eps:: %.6f lmiu %d rmiu %d time(s) %.6f\n",0.5, i*2, right_miu, query_var_lmiu_time[i-1]);
+    for (int i = 1; i <= 10; i++) {
+        printf("eps:: %.6f lmiu %d rmiu %d time(s) %.6f\n", 0.5, i * 2, right_miu, query_var_lmiu_time[i - 1]);
     }
 
-    for(int i=1;i<=10;i++) printf("%.6f ",query_var_lmiu_time[i-1]);
+    for (int i = 1; i <= 10; i++) printf("%.6f ", query_var_lmiu_time[i - 1]);
     printf("\n");
 
-    for(int i=1;i<=10;i++){
-        printf("eps:: %.6f lmiu %d rmiu %d time(s) %.6f\n",0.5, left_miu, i*2, query_var_rmiu_time[i-1]);
+    for (int i = 1; i <= 10; i++) {
+        printf("eps:: %.6f lmiu %d rmiu %d time(s) %.6f\n", 0.5, left_miu, i * 2, query_var_rmiu_time[i - 1]);
     }
 
-    for(int i=1;i<=10;i++) printf("%.6f ",query_var_rmiu_time[i-1]);
+    for (int i = 1; i <= 10; i++) printf("%.6f ", query_var_rmiu_time[i - 1]);
     printf("\n");
 
     return 0;

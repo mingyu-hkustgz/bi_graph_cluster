@@ -1,7 +1,7 @@
-#datasets=("actor-movie" "actor2" "amazon-ratings" "citeulike-ui" "dblp-author" "dbpedia-writer" "flickr-groupmemberships" "github" "munmun_twitterex_ut")
+datasets=("actor-movie" "actor2" "amazon-ratings" "citeulike-ui" "dblp-author" "dbpedia-writer" "flickr-groupmemberships" "github" "munmun_twitterex_ut")
 
 # small graph
-datasets=("leader" "revolution" "actor-movie")
+# datasets=("leader" "revolution" "actor-movie" "github")
 # medium graph
 # datasets=("actor-movie" "actor2" "amazon-ratings" "citeulike-ui" "munmun_twitterex_ut")
 # large graph

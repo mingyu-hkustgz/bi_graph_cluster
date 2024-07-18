@@ -75,9 +75,13 @@ public:
 
     void dynamic_index_init(char *filename);
 
-    void naive_insert_edge(int u, int v);
+    void fast_insert_edge(int u, int v);
 
-    void naive_delete_edge(int u, int v);
+    void fast_delete_edge(int u, int v);
+
+    void naive_insert_edge(int u,int v);
+
+    void naive_delete_edge(int u,int v);
 
     void recompute_edge_similarity(int u, int v);
 
@@ -86,6 +90,8 @@ public:
     void remove_influenced_node(int u,int v);
 
     int find_reverse_top(int &node, int &neighbor, float &similarity);
+
+    bool neighbor_exist(int &node, int &neighbor);
 
     int get_ave_left_degree(){
         LL degree_count = 0;

@@ -64,7 +64,11 @@ int main(int argc, char *argv[]) {
     while (query_num--) {
         int u = rand() % graph_dynamic->left_nodes + 1;
         int v = rand() % graph_dynamic->right_nodes + 1 + graph_dynamic->left_nodes;
-        if (query_num & 1)
+        if (query_num % 4 == 0)
+            graph_dynamic->fast_delete_edge(u, v);
+        else if (query_num % 4 == 1)
+            graph_dynamic->fast_insert_edge(u, v);
+        else if (query_num % 4 == 2)
             graph_dynamic->naive_delete_edge(u, v);
         else
             graph_dynamic->naive_insert_edge(u, v);

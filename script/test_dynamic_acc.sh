@@ -22,7 +22,7 @@ for data in "${datasets[@]}"; do
 
     graph_path="${source_path}/${data}/${data}.graph"
     index_path="./DATA/${data}/${data}.index"
-    ./cmake-build-debug/test/test_dynamic_index -g ${graph_path} -i ${index_path} -t 300
+    ./cmake-build-debug/test/test_dynamic_index -g ${graph_path} -i ${index_path} -t 500
 
 done
 
