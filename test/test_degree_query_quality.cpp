@@ -31,11 +31,11 @@ int main(int argc, char *argv[]) {
     int iarg = 0;
     opterr = 1;    //getopt error message (off: 0)
 
+    char index_path[256] = "";
     char graph_path[256] = "";
     char logger_path[256] = "";
     char result_path[256] = "";
     char modularity_path[256] = "";
-
     while (iarg != -1) {
         iarg = getopt_long(argc, argv, "g:d:r:m:", longopts, &ind);
         switch (iarg) {
@@ -55,54 +55,50 @@ int main(int argc, char *argv[]) {
     }
     auto *graph = new Graph(graph_path);
     graph->load_graph();
-    graph->index_cluster_construct();
+    graph->naive_degree_cluster_construct();
     std::cerr << "index construct" << std::endl;
     std::unordered_map<int, int> result_mp;
     double max_origin_modularity = 0.0, max_split_modularity = 0.0;
     float origin_eps, split_eps;
-    int origin_l, origin_r, split_l, split_r;
-    int split_hub_out_bound = graph->node_num /5;
-    for (int l = 1; l <= 4; l++) {
-        for (int r = 1; r <= 4; r++) {
-            for (float eps = 0.01; eps <= 1.0; eps += 0.01) {
-                graph->index_query_union(eps, l, r);
-                result_mp.clear();
-                graph->core_bm_.clear();
-                int hub_out_count = 0;
-                for (int i = 0; i < graph->node_num; i++) {
-                    if (graph->graph_[i].empty()) continue;
-                    int result = graph->fa_[i];
-                    if (result == i && !graph->core_bm_[i]) result = -1;
-                    result_mp[i] = result;
-                    if (result == -1) hub_out_count++;
-                }
-                std::cerr << l << " " << r << " " << eps << " " << hub_out_count << std::endl;
-                double origin_modularity = compute_modularity(graph->graph_, result_mp, "origin");
-                double split_modularity = compute_modularity(graph->graph_, result_mp, "split");
-                std::cerr << "Origin Modularity:: " << origin_modularity << std::endl;
-                std::cerr << "Split Modularity:: " << split_modularity << std::endl;
-                if (origin_modularity > max_origin_modularity) {
-                    max_origin_modularity = origin_modularity;
-                    origin_eps = eps;
-                    origin_l = l;
-                    origin_r = r;
-                }
-                if (split_modularity > max_split_modularity && hub_out_count < split_hub_out_bound) {
-                    max_split_modularity = split_modularity;
-                    split_eps = eps;
-                    split_l = l;
-                    split_r = r;
-                }
+    int origin_l, split_l;
+    int split_hub_out_bound = graph->node_num / 5;
+    auto tmp_graph = graph->graph_;
+    for (int l = 1; l <= 10; l++) {
+        for (float eps = 0.05; eps <= 1.0; eps += 0.05) {
+            graph->degree_query_union(eps, l);
+            result_mp.clear();
+            graph->core_bm_.clear();
+            int hub_out_count = 0;
+            for (int i = 0; i < graph->node_num; i++) {
+                if (graph->graph_[i].empty()) continue;
+                int result = graph->fa_[i];
+                if (result == i && !graph->core_bm_[i]) result = -1;
+                result_mp[i] = result;
+                if (result == -1) hub_out_count++;
+            }
+            std::cerr << l << " " << eps << " " << hub_out_count << std::endl;
+            double origin_modularity = compute_modularity(tmp_graph, result_mp, "origin");
+            double split_modularity = compute_modularity(tmp_graph, result_mp, "split");
+            std::cerr << "Origin Modularity:: " << origin_modularity << std::endl;
+            std::cerr << "Split Modularity:: " << split_modularity << std::endl;
+            if (origin_modularity > max_origin_modularity) {
+                max_origin_modularity = origin_modularity;
+                origin_eps = eps;
+                origin_l = l;
+            }
+            if (split_modularity > max_split_modularity && hub_out_count < split_hub_out_bound) {
+                max_split_modularity = split_modularity;
+                split_eps = eps;
+                split_l = l;
             }
         }
     }
-    std::cerr << "MAX Origin Modularity:: " << max_origin_modularity << " " << origin_eps << " " << origin_l << " "
-              << origin_r << std::endl;
-    std::cerr << "MAX Split Modularity:: " << max_split_modularity << " " << split_eps << " " << split_l << " "
-              << split_r << std::endl;
+    std::cerr << "MAX Origin Modularity:: " << max_origin_modularity << " " << origin_eps << " " << origin_l
+              << std::endl;
+    std::cerr << "MAX Split Modularity:: " << max_split_modularity << " " << split_eps << " " << split_l << std::endl;
 
 
-    graph->index_query_union(origin_eps, origin_l, origin_r);
+    graph->reconstruct_query_union(origin_eps, origin_l);
     result_mp.clear();
     graph->core_bm_.clear();
     int hub_out_count = 0;
@@ -120,7 +116,7 @@ int main(int argc, char *argv[]) {
     double split_modularity = compute_modularity(graph->graph_, result_mp, "split");
     std::cerr << "Origin Modularity:: " << origin_modularity << std::endl;
     std::cerr << "Split Modularity:: " << split_modularity << std::endl;
-    graph->statistics_eps_per_edge("");
+
     ofstream out(logger_path, std::ios::binary);
     unsigned dim = 2;
     for (auto u: result_mp) {
@@ -130,10 +126,9 @@ int main(int argc, char *argv[]) {
     }
 
     ofstream mout(modularity_path);
-    mout << "MAX Origin Modularity:: " << max_origin_modularity << " " << origin_eps << " " << origin_l << " "
-         << origin_r << std::endl;
-    mout << "MAX Split Modularity:: " << max_split_modularity << " " << split_eps << " " << split_l << " " << split_r
+    mout << "MAX Origin Modularity:: " << max_origin_modularity << " " << origin_eps << " " << origin_l
          << std::endl;
+    mout << "MAX Split Modularity:: " << max_split_modularity << " " << split_eps << " " << split_l << std::endl;
     mout << "Origin Modularity:: " << origin_modularity << std::endl;
     mout << "Split Modularity:: " << split_modularity << std::endl;
 

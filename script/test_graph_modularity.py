@@ -2,24 +2,16 @@ import networkx as nx
 import community
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from networkx.algorithms import community as community_algorithm
+import scipy.io as scio
 from sklearn.cluster import SpectralClustering
+from sklearn.cluster import SpectralCoclustering
+from sklearn.cluster import SpectralBiclustering
 from utils import *
 
 # datasets = ["dbpedia-writer", "actor-movie", "citeulike-ui", "github", "leader", "revolution"]
 
-datasets = ["dbpedia-writer"]
-
-
-def compute_modularity(G):
-    # Compute the best partition
-    partition = community.best_partition(G)
-
-    # Calculate modularity
-    modularity = community.modularity(partition, G)
-
-    return modularity, partition
-
+datasets = ["revolution"]
+num_cluster = 5
 
 def spectral_clustering_with_sklearn(G, n_clusters):
     # obtain adj-matrix
@@ -31,6 +23,25 @@ def spectral_clustering_with_sklearn(G, n_clusters):
 
     # obtain cluster result
     clustering = {node: label for node, label in zip(G.nodes(), sc.labels_)}
+
+    return clustering
+
+
+def spectral_co_clustering_with_sklearn(G, n_clusters):
+    # obtain adj-matrix
+    adj_matrix = nx.to_numpy_array(G)
+
+    # SpectralClustering
+    sc = SpectralCoclustering(n_clusters=n_clusters, n_init=100)
+    sc.fit(adj_matrix)
+
+    # obtain cluster result
+    clustering = {}
+    for node, label in zip(G.nodes(), sc.column_labels_):
+        clustering[node] = label
+
+    for node, label in zip(G.nodes(), sc.row_labels_):
+        clustering[node] = label
 
     return clustering
 
@@ -102,6 +113,8 @@ if __name__ == "__main__":
             else:
                 index_community = {}
                 for node, cluster in graph_filter.items():
+                    if node not in G.nodes:
+                        continue
                     if cluster != -1:
                         index_community[node] = cluster
 
@@ -114,19 +127,20 @@ if __name__ == "__main__":
                 plt.savefig(f"./result/Index-{dataset}-{method}.png")
                 plt.cla()
 
-            # MAX community
+            # Spectral community
+            partition = spectral_clustering_with_sklearn(G, num_cluster)
 
-            modularity, partition = compute_modularity(G)
+            spectral_modularity = community.modularity(partition, G)
 
-            print(f"\nMAX Modularity: {modularity}\n")
+            print(f"\nSpectral Modularity: {spectral_modularity}\n")
             if len(edges) < 1000:
                 print_community(partition)
-                graph_partition_visualize(G, partition, modularity)
-                plt.savefig(f"./result/Max-{dataset}-{method}.png")
+                graph_partition_visualize(G, partition, spectral_modularity)
+                plt.savefig(f"./result/Spec-{dataset}-{method}.png")
                 plt.cla()
 
-            # Spectral community
-            partition = spectral_clustering_with_sklearn(G, 5)
+            # Spectral Co-cluster community
+            partition = spectral_clustering_with_sklearn(G, num_cluster)
 
             spectral_modularity = community.modularity(partition, G)
 

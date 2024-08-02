@@ -17,3 +17,13 @@ target_link_libraries(test_dynamic_index ${PROJECT_NAME})
 
 add_executable(test_dynamic_time test_dynamic_time.cpp)
 target_link_libraries(test_dynamic_time ${PROJECT_NAME})
+
+add_executable(test_proj_query_quality test_proj_query_quality.cpp)
+target_link_libraries(test_proj_query_quality ${PROJECT_NAME})
+
+add_executable(test_single_quality test_single_quality.cpp)
+target_link_libraries(test_single_quality ${PROJECT_NAME})
+
+add_executable(test_degree_query_quality test_degree_query_quality.cpp)
+target_link_libraries(test_degree_query_quality ${PROJECT_NAME})
+

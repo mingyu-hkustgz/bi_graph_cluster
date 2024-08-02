@@ -90,6 +90,12 @@ int main(int argc, char *argv[]) {
         std::cerr << "index construct" << std::endl;
         graph->save_index_data(index_path);
     }
+    if (method ==5){
+        graph->index_degree_cluster_construct();
+        std::cerr << "index construct" << std::endl;
+        graph->save_index_data(index_path);
+    }
+
     auto e = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = e - s;
     double time_slap = diff.count();

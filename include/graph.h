@@ -55,6 +55,10 @@ public:
 
     void naive_reconstruct_cluster_construct(bool use_hash=true);
 
+    void naive_degree_cluster_construct();
+
+    void index_degree_cluster_construct();
+
     void naive_parallel_cluster_construct(int threads);
 
     void sort_nbr_by_similarity(int u);
@@ -72,6 +76,8 @@ public:
     void dynamic_query_union(float eps, int l_miu, int r_miu);
 
     void reconstruct_query_union(float eps, int miu);
+
+    void degree_query_union(float eps, int miu);
 
     void dynamic_index_init(char *filename);
 

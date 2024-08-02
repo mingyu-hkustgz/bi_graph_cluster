@@ -5,6 +5,7 @@
 *.uuid
 *.log
 *.png
+*.pdf
 *.naive
 *.mat
 build
@@ -14,4 +15,5 @@ cmake-build-debug-
 .idea
 /DATA
 /result
+/figure
 /bench/__pycache__

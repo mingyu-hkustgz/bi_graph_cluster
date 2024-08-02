@@ -260,3 +260,65 @@ void Graph::naive_reconstruct_cluster_construct(bool use_hash) {
         }
     }
 }
+
+void Graph::naive_degree_cluster_construct() {
+    for (int u = 0; u < node_num; u++) {
+        if (u % (node_num / 100 + 1) == 0) std::cerr << "current :: tag -> :: " << u << std::endl;
+        for (auto v: graph_[u]) {
+            if (v < u) continue;
+            LL cn = 2;
+            LL u_deg = (LL) graph_[u].size() + 1;
+            LL v_deg = (LL) graph_[v].size() + 1;
+            common_bflys_[std::make_pair(u, v)] = cn;
+            common_bflys_[std::make_pair(v, u)] = cn;
+            long double base_eps = (long double) (cn * cn) / (long double) (u_deg * v_deg);
+            float tmp_eps = base_eps;
+            similarity_square_[std::make_pair(u, v)] = tmp_eps;
+            similarity_square_[std::make_pair(v, u)] = tmp_eps;
+        }
+    }
+}
+
+void Graph::index_degree_cluster_construct(){
+    index_core_cnt_left.resize(max_degree_ + 1, 0);
+    index_core_cnt_right.resize(max_degree_ + 1, 0);
+    for (int u = 0; u < node_num; ++u) {
+        if (u % (node_num / 100 + 1) == 0 && node_num > 1000) std::cerr << "current :: tag -> :: " << u << std::endl;
+        // compute similarity of all edges connected to u
+        for (auto v: graph_[u]) {
+            if (v < u) continue;
+            LL cn = 2;
+            LL u_deg = (LL) graph_[u].size() + 1;
+            LL v_deg = (LL) graph_[v].size() + 1;
+            common_bflys_[std::make_pair(u, v)] = cn;
+            common_bflys_[std::make_pair(v, u)] = cn;
+            long double base_eps = (long double) (cn * cn) / (long double) (u_deg * v_deg);
+            float tmp_eps = base_eps;
+            similarity_square_[std::make_pair(u, v)] = tmp_eps;
+            similarity_square_[std::make_pair(v, u)] = tmp_eps;
+        }
+        if (u <= left_nodes)
+            ++index_core_cnt_left[graph_[u].size()];
+        else
+            ++index_core_cnt_right[graph_[u].size()];
+        sort_nbr_by_similarity(u);
+        // quick_sort_nbr_by_similarity(u, offset_[u], offset_[u+1]);
+    }
+    std::cerr << "sort core order" << std::endl;
+
+    // compute the number of vertices under each miu
+    for (int i = max_degree_ - 1; i > 0; --i) {
+        index_core_cnt_left[i] += index_core_cnt_left[i + 1];
+        index_core_cnt_right[i] += index_core_cnt_right[i + 1];
+    }
+
+    index_core_left.resize(max_degree_ + 1);
+    index_core_right.resize(max_degree_ + 1);
+    // construct the hierarchy
+    for (int i = 1; i <= max_degree_; ++i) {
+        index_core_left[i].resize(index_core_cnt_left[i]);
+        index_core_right[i].resize(index_core_cnt_right[i]);
+        sort_cores(i);
+    }
+}
+
