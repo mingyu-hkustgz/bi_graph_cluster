@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     char graph_path[256] = "";
     char modularity_path[256] = "";
-    int l, r;
+    int l=-1, r=-1;
     float eps = 0.1;
 
     while (iarg != -1) {
@@ -58,10 +58,20 @@ int main(int argc, char *argv[]) {
     std::cerr<<"parameters:: L:"<<l<<" R:"<<r<<" Eps:"<<eps<<std::endl;
     auto *graph = new Graph(graph_path);
     graph->load_graph();
-    graph->index_cluster_construct();
+    if(r!=-1)
+        graph->index_cluster_construct();
+    else
+        graph->index_degree_cluster_construct();
     std::cerr << "index construct" << std::endl;
     std::unordered_map<int, int> result_mp;
-    graph->index_query_union(eps, l, r);
+    auto s = std::chrono::high_resolution_clock::now();
+    if(r!=-1)
+        graph->index_query_union(eps, l, r);
+    else
+        graph->degree_query_union(eps, l);
+    auto e = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = e - s;
+    double time_slap = diff.count();
     result_mp.clear();
     graph->core_bm_.clear();
     int hub_out_count = 0;
@@ -87,6 +97,7 @@ int main(int argc, char *argv[]) {
     }
 
     ofstream mout(modularity_path);
+    mout << "index query time(s)::" << time_slap << std::endl;
     mout << "Origin Modularity:: " << origin_modularity << std::endl;
     mout << "Split Modularity:: " << split_modularity << std::endl;
     mout << "Eliminate nodes:: " << rm_node <<" correspond %"<<100 * (double)rm_node/(double)graph->node_num<< std::endl;

@@ -1,4 +1,4 @@
-datasets=("leader" "revolution" "actor-movie" "actor2" "amazon-ratings" "citeulike-ui" "dblp-author" "dbpedia-writer" "github" "munmun_twitterex_ut")
+datasets=("dbpedia-team" "actor-movie" "amazon-ratings" "citeulike-ui" "dblp-author" "dbpedia-writer" "github" "munmun_twitterex_ut")
 
 # small graph
 # datasets=("leader" "revolution" "dbpedia-writer" "actor-movie" "citeulike-ui" "github")
