@@ -2,18 +2,22 @@ import networkx as nx
 import community
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from sklearn.cluster import KMeans
 import scipy.io as scio
 from sklearn.cluster import SpectralClustering
 from sklearn.cluster import SpectralCoclustering
 from sklearn.cluster import SpectralBiclustering
 from coclust.coclustering import CoclustMod
+from scipy.sparse import csr_matrix
 from utils import *
+from time import *
 
 # datasets = ["dbpedia-writer", "actor-movie", "citeulike-ui", "github", "leader", "revolution"]
 
-datasets = ["actor-movie"]
+datasets = ["revolution", "leader"]
 num_cluster = 5
-Methods = ["index", "Mod"]
+Methods = ["index", "Spec" , "Mod"]
+
 
 def spectral_clustering_with_sklearn(G, n_clusters):
     # obtain adj-matrix
@@ -29,39 +33,23 @@ def spectral_clustering_with_sklearn(G, n_clusters):
     return clustering
 
 
-def spectral_co_clustering_with_sklearn(G, n_clusters):
-    # obtain adj-matrix
-    adj_matrix = nx.to_numpy_array(G)
 
-    # SpectralClustering
-    sc = SpectralCoclustering(n_clusters=n_clusters, n_init=100)
-    sc.fit(adj_matrix)
-
-    # obtain cluster result
-    clustering = {}
-    for node, label in zip(G.nodes(), sc.column_labels_):
-        clustering[node] = label
-
-    for node, label in zip(G.nodes(), sc.row_labels_):
-        clustering[node] = label
-
-    return clustering
-
-
-def Coluster_MOD(G, n_clusters):
-    # obtain adj-matrix
-    adj_matrix = nx.to_numpy_array(G)
-
+def Coluster_MOD(mat, n_clusters):
     model = CoclustMod(n_clusters=n_clusters)
-    model.fit(adj_matrix)
-
+    model.fit(mat)
+    print(model.modularity, "check MOD")
     # obtain cluster result
     clustering = {}
-    for node, label in zip(G.nodes(), model.column_labels_):
-        clustering[node] = label
+    count = 1
 
-    for node, label in zip(G.nodes(), model.row_labels_):
-        clustering[node] = label
+    for label in model.row_labels_:
+        clustering[count] = label
+        count += 1
+
+    count += 1
+    for label in model.column_labels_:
+        clustering[count] = label
+        count += 1
 
     return clustering
 
@@ -151,14 +139,14 @@ if __name__ == "__main__":
 
                 if cluster_method == "Spec":
                     ################################ Spectral Method #################################
-
+                    t1 = time()
                     # Spectral community
                     partition = spectral_clustering_with_sklearn(G, num_cluster)
-
+                    t2 = time()
                     spectral_modularity = community.modularity(partition, G)
 
                     print(f"\nSpectral Modularity: {spectral_modularity}\n")
-
+                    print(f"Spect Time Use {t2-t2}(s)\n")
                     if len(edges) < 1000:
                         print_community(partition)
                         graph_partition_visualize(G, partition, spectral_modularity)
@@ -169,14 +157,34 @@ if __name__ == "__main__":
                     ################################ Mod Method #################################
 
                     # Mod Co-cluster community
-                    partition = Coluster_MOD(G, num_cluster)
+                    t1 = time()
+                    mat = load_bipartite_sparse(f"./DATA/{dataset}/{dataset}.graph")
+                    partition = Coluster_MOD(mat, num_cluster)
+                    t2 = time()
 
                     MoD_modularity = community.modularity(partition, G)
 
-                    print(f"\nMOD Modularity: {spectral_modularity}\n")
+                    print(f"\nMOD Modularity: {MoD_modularity}\n")
+                    print(f"Mod Time Use {t2-t2}(s)\n")
                     if len(edges) < 1000:
                         print_community(partition)
-                        graph_partition_visualize(G, partition, spectral_modularity)
+                        graph_partition_visualize(G, partition, MoD_modularity)
                         plt.savefig(f"./result/Co-MoD-{dataset}-{cluster_method}.png")
                         plt.cla()
 
+                if cluster_method == "Kmeans":
+                    ################################ Kmeans Method #################################
+                    mat = nx.to_numpy_array(G)
+                    kmeans = KMeans(n_clusters=num_cluster, random_state=42)
+                    kmeans.fit(mat)
+                    print(kmeans.labels_)
+                    partition = {node: label for node, label in zip(G.nodes(), kmeans.labels_)}
+
+                    MoD_modularity = community.modularity(partition, G)
+
+                    print(f"\nKeamns Modularity: {MoD_modularity}\n")
+                    if len(edges) < 1000:
+                        print_community(partition)
+                        graph_partition_visualize(G, partition, MoD_modularity)
+                        plt.savefig(f"./result/kmeans-{dataset}-{cluster_method}.png")
+                        plt.cla()
